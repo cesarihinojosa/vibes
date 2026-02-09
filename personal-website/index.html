@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cesar's Portfolio</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      overflow: hidden;
+      background: #000;
+      font-family: 'Space Grotesk', sans-serif;
+      color: #fff;
+      cursor: default;
+    }
+
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Starfield background */
+    #stars-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    /* Title */
+    #title {
+      position: fixed;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      animation: fadeInDown 1.5s ease 0.5s forwards;
+    }
+
+    #title h1 {
+      font-family: 'Space Mono', monospace;
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #FF8C42, #FFD166, #FF6B35);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      filter: drop-shadow(0 0 30px rgba(255, 140, 66, 0.4));
+    }
+
+    #title p {
+      font-size: 0.9rem;
+      letter-spacing: 4px;
+      color: rgba(255, 209, 102, 0.6);
+      margin-top: 8px;
+      text-transform: uppercase;
+    }
+
+    /* Hint text */
+    #hint {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      animation: fadeInUp 1.5s ease 2s forwards;
+    }
+
+    #hint p {
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.35);
+      text-transform: uppercase;
+    }
+
+    #hint .orbit-icon {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      position: relative;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    #hint .orbit-icon::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #FFD166;
+      border-radius: 50%;
+      top: 2px;
+      left: 8px;
+      animation: orbitDot 2s linear infinite;
+    }
+
+    @keyframes orbitDot {
+      0% { transform: rotate(0deg) translateY(6px); }
+      100% { transform: rotate(360deg) translateY(6px); }
+    }
+
+    /* Content panels */
+    .content-panel {
+      position: fixed;
+      z-index: 20;
+      background: rgba(10, 10, 30, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 140, 66, 0.2);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 420px;
+      width: 90%;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.85) translateY(20px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 
+        0 0 60px rgba(255, 107, 53, 0.1),
+        inset 0 0 60px rgba(255, 140, 66, 0.03);
+    }
+
+    .content-panel.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: scale(1) translateY(0);
+    }
+
+    .content-panel .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255, 140, 66, 0.3);
+      border-radius: 50%;
+      background: rgba(255, 107, 53, 0.1);
+      color: #FF8C42;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      line-height: 1;
+    }
+
+    .content-panel .close-btn:hover {
+      background: rgba(255, 107, 53, 0.3);
+      border-color: #FF8C42;
+      transform: rotate(90deg);
+    }
+
+    .content-panel h2 {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #FF8C42, #FFD166);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 2px;
+    }
+
+    .content-panel .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, #FF8C42, transparent);
+      margin-bottom: 20px;
+    }
+
+    .content-panel p {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.75);
+      margin-bottom: 12px;
+    }
+
+    .content-panel a.link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(255, 140, 66, 0.1));
+      border: 1px solid rgba(255, 140, 66, 0.4);
+      border-radius: 50px;
+      color: #FFD166;
+      text-decoration: none;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.4s ease;
+    }
+
+    .content-panel a.link-btn:hover {
+      background: linear-gradient(135deg, rgba(255, 107, 53, 0.4), rgba(255, 140, 66, 0.2));
+      border-color: #FF8C42;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255, 107, 53, 0.3);
+    }
+
+    .content-panel a.link-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    #panel-about {
+      top: 50%;
+      left: 50%;
+      transform-origin: center center;
+    }
+    #panel-about.active {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    #panel-about:not(.active) {
+      transform: translate(-50%, -50%) scale(0.85);
+    }
+
+    #panel-github {
+      top: 50%;
+      left: 50%;
+    }
+    #panel-github.active {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    #panel-github:not(.active) {
+      transform: translate(-50%, -50%) scale(0.85);
+    }
+
+    #panel-linkedin {
+      top: 50%;
+      left: 50%;
+    }
+    #panel-linkedin.active {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    #panel-linkedin:not(.active) {
+      transform: translate(-50%, -50%) scale(0.85);
+    }
+
+
+
+    /* Tooltip for hovering regions */
+    #tooltip {
+      position: fixed;
+      z-index: 15;
+      padding: 8px 20px;
+      background: rgba(10, 10, 30, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 140, 66, 0.4);
+      border-radius: 30px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #FFD166;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    #tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Loading screen */
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 1s ease;
+    }
+
+    #loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #loader .planet-loader {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #FFD166, #FF8C42, #FF6B35, #CC4E1A);
+      animation: pulse 1.5s ease-in-out infinite;
+      box-shadow: 0 0 40px rgba(255, 140, 66, 0.5), 0 0 80px rgba(255, 107, 53, 0.3);
+    }
+
+    #loader p {
+      margin-top: 24px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 4px;
+      color: rgba(255, 209, 102, 0.6);
+      text-transform: uppercase;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(255, 140, 66, 0.5); }
+      50% { transform: scale(1.1); box-shadow: 0 0 60px rgba(255, 140, 66, 0.7); }
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* Region labels floating near planet */
+    .region-label {
+      position: fixed;
+      z-index: 12;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .region-label .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #FFD166;
+      box-shadow: 0 0 10px rgba(255, 209, 102, 0.8);
+    }
+
+    .region-label .line {
+      width: 30px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 209, 102, 0.6), transparent);
+    }
+
+    .region-label span {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255, 209, 102, 0.7);
+    }
+
+    /* Skills tags in about panel */
+    .skills-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .skill-tag {
+      padding: 4px 14px;
+      background: rgba(255, 140, 66, 0.1);
+      border: 1px solid rgba(255, 140, 66, 0.25);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: rgba(255, 209, 102, 0.8);
+      letter-spacing: 1px;
+    }
+
+    /* Project cards */
+    .project-card {
+      background: rgba(255, 140, 66, 0.05);
+      border: 1px solid rgba(255, 140, 66, 0.15);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .project-card:hover {
+      border-color: rgba(255, 140, 66, 0.4);
+      background: rgba(255, 140, 66, 0.1);
+    }
+
+    .project-card h3 {
+      font-size: 0.95rem;
+      color: #FFD166;
+      margin-bottom: 6px;
+    }
+
+    .project-card p {
+      font-size: 0.8rem !important;
+      margin-bottom: 0 !important;
+      color: rgba(255, 255, 255, 0.55) !important;
+    }
+
+    /* Shooting stars */
+    .shooting-star {
+      position: fixed;
+      width: 100px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.8), transparent);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loader -->
+  <div id="loader">
+    <div class="planet-loader"></div>
+    <p>Entering orbit...</p>
+  </div>
+
+  <!-- Star background -->
+  <canvas id="stars-canvas"></canvas>
+
+  <!-- Three.js container -->
+  <div id="canvas-container"></div>
+
+  <!-- Title -->
+  <div id="title">
+    <h1>Cesar Hinojosa</h1>
+    <p>Software Engineer</p>
+  </div>
+
+  <!-- Hint -->
+  <div id="hint">
+    <p><span class="orbit-icon"></span> Click a region to explore</p>
+  </div>
+
+  <!-- Tooltip -->
+  <div id="tooltip"></div>
+
+  <!-- Content Panels -->
+  <div class="content-panel" id="panel-about">
+    <button class="close-btn" onclick="closePanel('about')">&times;</button>
+    <h2>About Me</h2>
+    <div class="divider"></div>
+    <p>
+      I'm a Software Engineer with experience developing production systems and leading technical initiatives that improve reliability, automation, and team efficiency. I enjoy taking on complex engineering problems, building scalable solutions, and helping teams deliver higher-quality software faster.
+    </p>
+    <p>
+      I've worked across the software stack, from backend development and system integration to automation and testing. My background also includes experience in embedded systems, linux environments, and creative projects that combine technology with design and learning.
+    </p>
+    <p>
+      I'm motivated by curiosity, craftsmanship, and continuous improvement; always looking for better ways to build, learn, and collaborate.
+    </p>
+    <div class="skills-container">
+      <span class="skill-tag">Python</span>
+      <span class="skill-tag">Software Testing</span>
+      <span class="skill-tag">Systems Programming</span>
+      <span class="skill-tag">Full Stack</span>
+      <span class="skill-tag">Kubernetes</span>
+      <span class="skill-tag">CI/CD</span>
+      <span class="skill-tag">C/C++</span>
+      <span class="skill-tag">Go</span>
+      <span class="skill-tag">Kotlin</span>
+      <span class="skill-tag">Java</span>
+    </div>
+  </div>
+
+  <div class="content-panel" id="panel-github">
+    <button class="close-btn" onclick="closePanel('github')">&times;</button>
+    <h2>GitHub</h2>
+    <div class="divider"></div>
+    <p>
+      Explore my side projects.
+    </p>
+    <a href="https://github.com/cesarihinojosa" target="_blank" rel="noopener" class="link-btn">
+      <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      Visit GitHub
+    </a>
+  </div>
+
+  <div class="content-panel" id="panel-linkedin">
+    <button class="close-btn" onclick="closePanel('linkedin')">&times;</button>
+    <h2>LinkedIn</h2>
+    <div class="divider"></div>
+    <p>
+      Connect with me professionally. Let's discuss opportunities, 
+      collaborations, or just share ideas.
+    </p>
+    <a href="https://www.linkedin.com/in/cesar-hinojosa/" target="_blank" rel="noopener" class="link-btn">
+      <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      Visit LinkedIn
+    </a>
+  </div>
+
+
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // ============================================
+    // STARFIELD BACKGROUND
+    // ============================================
+    const starsCanvas = document.getElementById('stars-canvas');
+    const starsCtx = starsCanvas.getContext('2d');
+    let stars = [];
+
+    function initStars() {
+      const dpr = window.devicePixelRatio || 1;
+      starsCanvas.width = window.innerWidth * dpr;
+      starsCanvas.height = window.innerHeight * dpr;
+      starsCanvas.style.width = window.innerWidth + 'px';
+      starsCanvas.style.height = window.innerHeight + 'px';
+      starsCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      stars = [];
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const count = Math.floor((w * h) / 800);
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          radius: Math.random() * 1.5 + 0.3,
+          alpha: Math.random() * 0.8 + 0.2,
+          twinkleSpeed: Math.random() < 0.5 ? 0 : Math.random() * 0.004 + 0.001,
+          twinkleOffset: Math.random() * Math.PI * 2,
+          color: Math.random() > 0.9 
+            ? `rgba(255, ${180 + Math.floor(Math.random()*75)}, ${100 + Math.floor(Math.random()*100)},` 
+            : `rgba(${200 + Math.floor(Math.random()*55)}, ${200 + Math.floor(Math.random()*55)}, 255,`
+        });
+      }
+    }
+
+    function drawStars(time) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      starsCtx.clearRect(0, 0, w, h);
+      
+      // Deep space gradient
+      const grad = starsCtx.createRadialGradient(
+        w / 2, h / 2, 0,
+        w / 2, h / 2, w * 0.7
+      );
+      grad.addColorStop(0, '#0a0a1a');
+      grad.addColorStop(0.5, '#050510');
+      grad.addColorStop(1, '#000005');
+      starsCtx.fillStyle = grad;
+      starsCtx.fillRect(0, 0, w, h);
+
+      // Subtle nebula
+      const nebula = starsCtx.createRadialGradient(
+        w * 0.3, h * 0.4, 0,
+        w * 0.3, h * 0.4, w * 0.4
+      );
+      nebula.addColorStop(0, 'rgba(255, 107, 53, 0.015)');
+      nebula.addColorStop(0.5, 'rgba(255, 140, 66, 0.008)');
+      nebula.addColorStop(1, 'transparent');
+      starsCtx.fillStyle = nebula;
+      starsCtx.fillRect(0, 0, w, h);
+
+      const nebula2 = starsCtx.createRadialGradient(
+        w * 0.75, h * 0.65, 0,
+        w * 0.75, h * 0.65, w * 0.35
+      );
+      nebula2.addColorStop(0, 'rgba(100, 60, 180, 0.012)');
+      nebula2.addColorStop(0.5, 'rgba(60, 40, 120, 0.006)');
+      nebula2.addColorStop(1, 'transparent');
+      starsCtx.fillStyle = nebula2;
+      starsCtx.fillRect(0, 0, w, h);
+
+      // Draw stars
+      for (const star of stars) {
+        const twinkle = star.twinkleSpeed > 0
+          ? Math.sin(time * star.twinkleSpeed + star.twinkleOffset) * 0.12 + 0.88
+          : 1.0;
+        const alpha = star.alpha * twinkle;
+        starsCtx.beginPath();
+        starsCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        starsCtx.fillStyle = star.color + alpha + ')';
+        starsCtx.fill();
+
+        // Glow for bright stars
+        if (star.radius > 1.2) {
+          starsCtx.beginPath();
+          starsCtx.arc(star.x, star.y, star.radius * 3, 0, Math.PI * 2);
+          starsCtx.fillStyle = star.color + (alpha * 0.1) + ')';
+          starsCtx.fill();
+        }
+      }
+    }
+
+    // ============================================
+    // SHOOTING STARS
+    // ============================================
+    let shootingStars = [];
+
+    function spawnShootingStar() {
+      if (Math.random() > 0.003) return;
+      const angle = Math.random() * 0.5 + 0.3;
+      shootingStars.push({
+        x: Math.random() * window.innerWidth,
+        y: -10,
+        length: Math.random() * 80 + 40,
+        speed: Math.random() * 8 + 6,
+        angle: angle,
+        alpha: 1,
+        life: 0
+      });
+    }
+
+    function drawShootingStars() {
+      for (let i = shootingStars.length - 1; i >= 0; i--) {
+        const ss = shootingStars[i];
+        ss.x += Math.cos(ss.angle) * ss.speed;
+        ss.y += Math.sin(ss.angle) * ss.speed;
+        ss.life++;
+        ss.alpha = Math.max(0, 1 - ss.life / 60);
+
+        if (ss.alpha <= 0 || ss.x > window.innerWidth + 100 || ss.y > window.innerHeight + 100) {
+          shootingStars.splice(i, 1);
+          continue;
+        }
+
+        const tailX = ss.x - Math.cos(ss.angle) * ss.length;
+        const tailY = ss.y - Math.sin(ss.angle) * ss.length;
+
+        const gradient = starsCtx.createLinearGradient(ss.x, ss.y, tailX, tailY);
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${ss.alpha})`);
+        gradient.addColorStop(0.3, `rgba(255, 209, 102, ${ss.alpha * 0.6})`);
+        gradient.addColorStop(1, `rgba(255, 140, 66, 0)`);
+
+        starsCtx.beginPath();
+        starsCtx.moveTo(ss.x, ss.y);
+        starsCtx.lineTo(tailX, tailY);
+        starsCtx.strokeStyle = gradient;
+        starsCtx.lineWidth = 1.5;
+        starsCtx.stroke();
+
+        // Head glow
+        starsCtx.beginPath();
+        starsCtx.arc(ss.x, ss.y, 2, 0, Math.PI * 2);
+        starsCtx.fillStyle = `rgba(255, 255, 255, ${ss.alpha})`;
+        starsCtx.fill();
+      }
+    }
+
+    // ============================================
+    // THREE.JS PLANET
+    // ============================================
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 7;
+
+    // Zoom state
+    let targetZoom = 7;
+    const ZOOM_MIN = 3.2;
+    const ZOOM_MAX = 12;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    // Create procedural planet texture
+    function createPlanetTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 4096;
+      canvas.height = 2048;
+      const ctx = canvas.getContext('2d');
+      const S = canvas.width / 1024; // scale factor vs original 1024
+
+      // Base orange gradient - clean bands
+      const baseGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      baseGrad.addColorStop(0, '#E85D26');
+      baseGrad.addColorStop(0.15, '#FF7F3F');
+      baseGrad.addColorStop(0.3, '#FF8C42');
+      baseGrad.addColorStop(0.45, '#FFB347');
+      baseGrad.addColorStop(0.55, '#FF8C42');
+      baseGrad.addColorStop(0.7, '#FF6B35');
+      baseGrad.addColorStop(0.85, '#FF7F3F');
+      baseGrad.addColorStop(1, '#E85D26');
+      ctx.fillStyle = baseGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Clean horizontal bands (like Jupiter/Saturn style)
+      for (let i = 0; i < 12; i++) {
+        const y = (i + 0.5) * (canvas.height / 12);
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        for (let x = 0; x < canvas.width; x += 4) {
+          ctx.lineTo(x, y + Math.sin(x * 0.008 / S + i * 1.5) * 15 * S + Math.sin(x * 0.003 / S + i) * 8 * S);
+        }
+        ctx.lineTo(canvas.width, y + 40 * S);
+        ctx.lineTo(canvas.width, y - 40 * S);
+        ctx.closePath();
+        const bandAlpha = 0.06 + (i % 3) * 0.03;
+        ctx.fillStyle = i % 2 === 0 
+          ? `rgba(200, 100, 30, ${bandAlpha})` 
+          : `rgba(255, 200, 120, ${bandAlpha})`;
+        ctx.fill();
+      }
+
+      // Region colors and boundaries (scaled up)
+      const regions = [
+        { name: 'about', x: 120*S, y: 140*S, w: 180*S, h: 130*S, color: 'rgba(255, 210, 100, 0.5)', borderColor: '#FFD166', shadow: 'rgba(200, 160, 50, 0.3)' },
+        { name: 'github', x: 450*S, y: 100*S, w: 160*S, h: 120*S, color: 'rgba(200, 100, 50, 0.5)', borderColor: '#DD6633', shadow: 'rgba(150, 60, 20, 0.3)' },
+        { name: 'linkedin', x: 700*S, y: 200*S, w: 170*S, h: 130*S, color: 'rgba(80, 140, 220, 0.4)', borderColor: '#5599DD', shadow: 'rgba(40, 80, 160, 0.3)' },
+      ];
+
+      // Draw region patches (cartoon continents) - smooth bezier curves
+      for (const region of regions) {
+        const cx = region.x + region.w / 2;
+        const cy = region.y + region.h / 2;
+        const points = 24; // more points = smoother blob
+
+        // Generate smooth blob path
+        function getBlobPath(scale) {
+          const pts = [];
+          for (let i = 0; i < points; i++) {
+            const angle = (i / points) * Math.PI * 2;
+            const rx = (region.w / 2) * scale * (0.75 + Math.sin(angle * 3 + region.x * 0.01) * 0.2 + Math.sin(angle * 5 + region.y * 0.01) * 0.08);
+            const ry = (region.h / 2) * scale * (0.75 + Math.cos(angle * 2 + region.y * 0.01) * 0.2 + Math.cos(angle * 4 + region.x * 0.01) * 0.08);
+            pts.push({ x: cx + Math.cos(angle) * rx, y: cy + Math.sin(angle) * ry });
+          }
+          return pts;
+        }
+
+        function drawBlobPath(pts) {
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+          for (let i = 0; i < pts.length; i++) {
+            const curr = pts[i];
+            const next = pts[(i + 1) % pts.length];
+            const cp1x = curr.x + (next.x - pts[(i - 1 + pts.length) % pts.length].x) * 0.15;
+            const cp1y = curr.y + (next.y - pts[(i - 1 + pts.length) % pts.length].y) * 0.15;
+            const cp2x = next.x - (pts[(i + 2) % pts.length].x - curr.x) * 0.15;
+            const cp2y = next.y - (pts[(i + 2) % pts.length].y - curr.y) * 0.15;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
+          }
+          ctx.closePath();
+        }
+
+        // Shadow / elevation effect
+        ctx.save();
+        const shadowPts = getBlobPath(1.08);
+        drawBlobPath(shadowPts);
+        ctx.fillStyle = region.shadow;
+        ctx.fill();
+        ctx.restore();
+
+        // Main region fill
+        ctx.save();
+        const mainPts = getBlobPath(1.0);
+        drawBlobPath(mainPts);
+        ctx.fillStyle = region.color;
+        ctx.fill();
+        // Crisp border
+        ctx.strokeStyle = region.borderColor;
+        ctx.lineWidth = 3 * S;
+        ctx.globalAlpha = 0.7;
+        ctx.stroke();
+        ctx.restore();
+
+        // Inner highlight
+        ctx.save();
+        const innerPts = getBlobPath(0.6);
+        drawBlobPath(innerPts);
+        ctx.fillStyle = `rgba(255, 255, 255, 0.06)`;
+        ctx.fill();
+        ctx.restore();
+
+        // Region label on texture - crisp text
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        // Icon
+        const icon = { about: '\u2302', github: '\u2663', linkedin: '\u263A', projects: '\u2605', contact: '\u2709' };
+        ctx.font = `bold ${28 * S}px monospace`;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillText(icon[region.name] || '', cx, cy - 10 * S);
+        // Label
+        ctx.font = `bold ${13 * S}px monospace`;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        ctx.fillText(region.name.toUpperCase(), cx, cy + 16 * S);
+        ctx.restore();
+      }
+
+      // Surface texture - layered noise for rocky/earthy feel
+      // Large splotches for color variation
+      for (let i = 0; i < 80; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const r = (Math.random() * 80 + 30) * S;
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        const dark = Math.random() > 0.5;
+        grad.addColorStop(0, dark ? 'rgba(120, 60, 20, 0.07)' : 'rgba(255, 220, 150, 0.06)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      // Medium grain texture
+      for (let i = 0; i < 300; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const r = (Math.random() * 12 + 4) * S;
+        const alpha = Math.random() * 0.06 + 0.02;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = Math.random() > 0.5
+          ? `rgba(255, 255, 255, ${alpha})`
+          : `rgba(0, 0, 0, ${alpha})`;
+        ctx.fill();
+      }
+
+      // Craters with depth
+      for (let i = 0; i < 18; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const r = (Math.random() * 25 + 8) * S;
+        ctx.save();
+        // Crater shadow
+        const cGrad = ctx.createRadialGradient(x + r * 0.15, y + r * 0.15, r * 0.1, x, y, r);
+        cGrad.addColorStop(0, 'rgba(0, 0, 0, 0.1)');
+        cGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.04)');
+        cGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = cGrad;
+        ctx.fill();
+        // Crater rim highlight
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 200, 140, 0.08)';
+        ctx.lineWidth = 2 * S;
+        ctx.stroke();
+        // Inner highlight (light catch on rim)
+        ctx.beginPath();
+        ctx.arc(x - r * 0.2, y - r * 0.2, r * 0.7, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 1 * S;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Fine stipple for rocky texture
+      for (let i = 0; i < 600; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const r = (Math.random() * 2 + 0.5) * S;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = Math.random() > 0.5
+          ? `rgba(255, 220, 160, ${Math.random() * 0.08})`
+          : `rgba(160, 80, 30, ${Math.random() * 0.08})`;
+        ctx.fill();
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.anisotropy = 16;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = true;
+      return tex;
+    }
+
+    // Create bump map - multi-scale terrain
+    function createBumpMap() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 2048;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#808080';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Large-scale elevation (mountains/valleys)
+      for (let i = 0; i < 120; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const r = Math.random() * 100 + 40;
+        const v = Math.floor(Math.random() * 40 + 108);
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, `rgb(${v}, ${v}, ${v})`);
+        grad.addColorStop(1, 'rgb(128, 128, 128)');
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+      // Medium-scale terrain (hills)
+      for (let i = 0; i < 400; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const r = Math.random() * 20 + 5;
+        const v = Math.floor(Math.random() * 30 + 113);
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgb(${v}, ${v}, ${v})`;
+        ctx.fill();
+      }
+      // Fine-scale roughness (rocks/pebbles)
+      for (let i = 0; i < 1500; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const r = Math.random() * 4 + 1;
+        const v = Math.floor(Math.random() * 20 + 118);
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgb(${v}, ${v}, ${v})`;
+        ctx.fill();
+      }
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.anisotropy = 16;
+      return tex;
+    }
+
+    const planetTexture = createPlanetTexture();
+    const bumpMap = createBumpMap();
+
+    // Set max anisotropy from renderer
+    const maxAniso = renderer.capabilities.getMaxAnisotropy();
+    planetTexture.anisotropy = maxAniso;
+    bumpMap.anisotropy = maxAniso;
+
+    // Planet - higher poly count for smoother silhouette
+    const planetGeometry = new THREE.SphereGeometry(1.5, 128, 128);
+    const planetMaterial = new THREE.MeshPhongMaterial({
+      map: planetTexture,
+      bumpMap: bumpMap,
+      bumpScale: 0.05,
+      specular: new THREE.Color(0x221100),
+      shininess: 8,
+    });
+    const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+    scene.add(planet);
+
+    // Atmosphere glow (outer) - tight rim only, no bleed over surface
+    const atmosphereGeometry = new THREE.SphereGeometry(1.58, 128, 128);
+    const atmosphereMaterial = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+          float rim = 1.0 - dot(vNormal, vec3(0.0, 0.0, 1.0));
+          float intensity = pow(rim, 5.0) * 0.7;
+          vec3 color = vec3(1.0, 0.55, 0.2);
+          gl_FragColor = vec4(color, intensity);
+        }
+      `,
+      transparent: true,
+      side: THREE.FrontSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    scene.add(atmosphere);
+
+    // Inner glow - very subtle backside rim
+    const innerGlowGeometry = new THREE.SphereGeometry(1.54, 128, 128);
+    const innerGlowMaterial = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+          float rim = 1.0 - dot(vNormal, vec3(0.0, 0.0, 1.0));
+          float intensity = pow(rim, 4.0) * 0.15;
+          vec3 color = vec3(1.0, 0.65, 0.3);
+          gl_FragColor = vec4(color, intensity);
+        }
+      `,
+      transparent: true,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const innerGlow = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial);
+    scene.add(innerGlow);
+
+    // Lighting
+    const mainLight = new THREE.DirectionalLight(0xFFF5E8, 1.2);
+    mainLight.position.set(5, 3, 5);
+    scene.add(mainLight);
+
+    const fillLight = new THREE.DirectionalLight(0x6688CC, 0.3);
+    fillLight.position.set(-5, -2, -3);
+    scene.add(fillLight);
+
+    const ambientLight = new THREE.AmbientLight(0x222233, 0.4);
+    scene.add(ambientLight);
+
+    // Rim light
+    const rimLight = new THREE.PointLight(0xFF8844, 0.8, 10);
+    rimLight.position.set(-3, 1, -2);
+    scene.add(rimLight);
+
+    // ============================================
+    // RAYCASTING & INTERACTION
+    // ============================================
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const tooltip = document.getElementById('tooltip');
+
+    // UV-based region mapping using exact blob geometry
+    // These match the texture drawing regions (in original 1024-base coords)
+    const regionDefs = [
+      { name: 'about', x: 120, y: 140, w: 180, h: 130, label: 'About Me' },
+      { name: 'github', x: 450, y: 100, w: 160, h: 120, label: 'GitHub' },
+      { name: 'linkedin', x: 700, y: 200, w: 170, h: 130, label: 'LinkedIn' },
+    ];
+
+    // Generate blob boundary points for a region in UV space (0-1)
+    // Uses the same math as createPlanetTexture's getBlobPath
+    function getRegionBlobUV(region) {
+      const TEX_W = 1024; // original base resolution
+      const TEX_H = 512;
+      const cx = region.x + region.w / 2;
+      const cy = region.y + region.h / 2;
+      const numPoints = 48; // high point count for accurate hit testing
+      const scale = 1.0;
+      const pts = [];
+      for (let i = 0; i < numPoints; i++) {
+        const angle = (i / numPoints) * Math.PI * 2;
+        const rx = (region.w / 2) * scale * (0.75 + Math.sin(angle * 3 + region.x * 0.01) * 0.2 + Math.sin(angle * 5 + region.y * 0.01) * 0.08);
+        const ry = (region.h / 2) * scale * (0.75 + Math.cos(angle * 2 + region.y * 0.01) * 0.2 + Math.cos(angle * 4 + region.x * 0.01) * 0.08);
+        pts.push({
+          u: (cx + Math.cos(angle) * rx) / TEX_W,
+          v: (cy + Math.sin(angle) * ry) / TEX_H
+        });
+      }
+      return pts;
+    }
+
+    // Pre-compute blob boundaries for each region
+    const regionMap = regionDefs.map(r => ({
+      ...r,
+      blob: getRegionBlobUV(r)
+    }));
+
+    // Point-in-polygon test (ray casting algorithm)
+    function pointInBlob(u, v, blob) {
+      let inside = false;
+      for (let i = 0, j = blob.length - 1; i < blob.length; j = i++) {
+        const ui = blob[i].u, vi = blob[i].v;
+        const uj = blob[j].u, vj = blob[j].v;
+        if ((vi > v) !== (vj > v) && u < (uj - ui) * (v - vi) / (vj - vi) + ui) {
+          inside = !inside;
+        }
+      }
+      return inside;
+    }
+
+    function getRegionAtUV(u, v) {
+      // Three.js UV v=0 is bottom, canvas y=0 is top, so flip v
+      const vFlipped = 1.0 - v;
+      for (const region of regionMap) {
+        if (pointInBlob(u, vFlipped, region.blob)) {
+          return region;
+        }
+      }
+      return null;
+    }
+
+    let hoveredRegion = null;
+    let isDragging = false;
+    let previousMouse = { x: 0, y: 0 };
+    let mouseDownOrigin = { x: 0, y: 0 };
+    let rotationVelocity = { x: 0, y: 0 };
+    let autoRotate = true;
+    let activePanel = null;
+
+    function onMouseMove(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      if (isDragging) {
+        const dx = event.clientX - previousMouse.x;
+        const dy = event.clientY - previousMouse.y;
+        rotationVelocity.x = dy * 0.002;
+        rotationVelocity.y = dx * 0.002;
+        planet.rotation.y += dx * 0.005;
+        planet.rotation.x += dy * 0.003;
+        // Clamp x rotation
+        planet.rotation.x = Math.max(-0.8, Math.min(0.8, planet.rotation.x));
+        previousMouse = { x: event.clientX, y: event.clientY };
+      }
+
+      // Raycast
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(planet);
+      
+      if (intersects.length > 0 && !activePanel) {
+        const uv = intersects[0].uv;
+        const region = getRegionAtUV(uv.x, uv.y);
+        
+        if (region) {
+          hoveredRegion = region;
+          tooltip.textContent = region.label;
+          tooltip.classList.add('visible');
+          tooltip.style.left = event.clientX + 15 + 'px';
+          tooltip.style.top = event.clientY - 30 + 'px';
+          renderer.domElement.style.cursor = 'pointer';
+        } else {
+          hoveredRegion = null;
+          tooltip.classList.remove('visible');
+          renderer.domElement.style.cursor = isDragging ? 'grabbing' : 'grab';
+        }
+      } else {
+        if (!activePanel) {
+          hoveredRegion = null;
+          tooltip.classList.remove('visible');
+          renderer.domElement.style.cursor = isDragging ? 'grabbing' : 'default';
+        }
+      }
+    }
+
+    function onMouseDown(event) {
+      isDragging = true;
+      previousMouse = { x: event.clientX, y: event.clientY };
+      mouseDownOrigin = { x: event.clientX, y: event.clientY };
+      renderer.domElement.style.cursor = 'grabbing';
+    }
+
+    function onMouseUp(event) {
+      const dragDistance = Math.abs(event.clientX - mouseDownOrigin.x) + Math.abs(event.clientY - mouseDownOrigin.y);
+      isDragging = false;
+      
+      // Only treat as click if barely moved from the original press point
+      if (dragDistance < 5 && hoveredRegion && !activePanel) {
+        openPanel(hoveredRegion.name);
+      }
+      
+      renderer.domElement.style.cursor = 'default';
+    }
+
+    function openPanel(name) {
+      activePanel = name;
+      document.getElementById(`panel-${name}`).classList.add('active');
+      tooltip.classList.remove('visible');
+      renderer.domElement.style.cursor = 'default';
+      
+      // Dim title
+      document.getElementById('title').style.opacity = '0.2';
+      document.getElementById('title').style.transition = 'opacity 0.5s ease';
+      document.getElementById('hint').style.opacity = '0';
+    }
+
+    function closePanel(name) {
+      document.getElementById(`panel-${name}`).classList.remove('active');
+      activePanel = null;
+      
+      document.getElementById('title').style.opacity = '1';
+      document.getElementById('hint').style.opacity = '1';
+    }
+
+    // Close panel on escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && activePanel) {
+        closePanel(activePanel);
+      }
+    });
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
+
+    // Touch support
+    window.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      previousMouse = { x: touch.clientX, y: touch.clientY };
+      isDragging = true;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      if (isDragging) {
+        const dx = touch.clientX - previousMouse.x;
+        const dy = touch.clientY - previousMouse.y;
+        planet.rotation.y += dx * 0.005;
+        planet.rotation.x += dy * 0.003;
+        planet.rotation.x = Math.max(-0.8, Math.min(0.8, planet.rotation.x));
+        previousMouse = { x: touch.clientX, y: touch.clientY };
+      }
+
+      // Raycast for touch
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      isDragging = false;
+      if (hoveredRegion && !activePanel) {
+        openPanel(hoveredRegion.name);
+      }
+    });
+
+    // Scroll wheel zoom
+    window.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      targetZoom += e.deltaY * 0.005;
+      targetZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, targetZoom));
+    }, { passive: false });
+
+    // Pinch zoom for mobile
+    let lastPinchDist = 0;
+    window.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastPinchDist = Math.sqrt(dx * dx + dy * dy);
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const delta = lastPinchDist - dist;
+        targetZoom += delta * 0.02;
+        targetZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, targetZoom));
+        lastPinchDist = dist;
+      }
+    }, { passive: true });
+
+    // ============================================
+    // PARTICLES (floating space dust)
+    // ============================================
+    const particlesCount = 500;
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesPositions = new Float32Array(particlesCount * 3);
+    const particlesSizes = new Float32Array(particlesCount);
+
+    for (let i = 0; i < particlesCount; i++) {
+      particlesPositions[i * 3] = (Math.random() - 0.5) * 20;
+      particlesPositions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+      particlesPositions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+      particlesSizes[i] = Math.random() * 2 + 0.5;
+    }
+
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(particlesPositions, 3));
+    particlesGeometry.setAttribute('size', new THREE.BufferAttribute(particlesSizes, 1));
+
+    const particlesMaterial = new THREE.PointsMaterial({
+      color: 0xFFAA66,
+      size: 0.02,
+      transparent: true,
+      opacity: 0.4,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particles);
+
+    // ============================================
+    // ANIMATION LOOP
+    // ============================================
+    let time = 0;
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      time += delta;
+
+      // Smooth zoom interpolation
+      camera.position.z += (targetZoom - camera.position.z) * 0.08;
+
+      // Auto-rotate planet
+      if (autoRotate) {
+        planet.rotation.y += 0.002;
+      }
+
+      // Apply rotation velocity friction
+      rotationVelocity.x *= 0.95;
+      rotationVelocity.y *= 0.95;
+      if (!isDragging) {
+        planet.rotation.x += rotationVelocity.x;
+        planet.rotation.y += rotationVelocity.y;
+      }
+
+      // Subtle float
+      planet.position.y = Math.sin(time * 0.5) * 0.05;
+      atmosphere.position.copy(planet.position);
+      innerGlow.position.copy(planet.position);
+      atmosphere.rotation.copy(planet.rotation);
+      innerGlow.rotation.copy(planet.rotation);
+
+      // Particles
+      particles.rotation.y += 0.0003;
+      particles.rotation.x += 0.0001;
+
+      // Render
+      renderer.render(scene, camera);
+
+      // Stars
+      drawStars(time * 1000);
+      spawnShootingStar();
+      drawShootingStars();
+    }
+
+    // ============================================
+    // RESIZE
+    // ============================================
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      initStars();
+    });
+
+    // ============================================
+    // INIT
+    // ============================================
+    initStars();
+
+    // Remove loader
+    setTimeout(() => {
+      document.getElementById('loader').classList.add('hidden');
+      setTimeout(() => {
+        document.getElementById('loader').remove();
+      }, 1000);
+    }, 1500);
+
+    animate();
+  </script>
+</body>
+</html>
