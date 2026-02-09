@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Globet - Your Miles Around the World</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0a0a1a;
+      color: #e0e0e0;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    #globe-container {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* ---------- Top bar ---------- */
+    #top-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 28px;
+      background: linear-gradient(180deg, rgba(10,10,26,.92) 60%, transparent);
+      pointer-events: none;
+    }
+    #top-bar > * { pointer-events: auto; }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #6ef0a5;
+    }
+    .logo span { color: #ffffff60; font-weight: 400; font-size: 13px; margin-left: 8px; }
+
+    /* ---------- Stats panel ---------- */
+    #stats-panel {
+      position: absolute;
+      bottom: 28px; left: 28px;
+      z-index: 10;
+      background: rgba(16,18,34,.88);
+      border: 1px solid rgba(110,240,165,.18);
+      border-radius: 16px;
+      padding: 22px 28px;
+      min-width: 280px;
+      backdrop-filter: blur(14px);
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 6px 0;
+    }
+    .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #ffffff60; }
+    .stat-value { font-size: 22px; font-weight: 700; color: #6ef0a5; }
+    .stat-value.small { font-size: 15px; color: #e0e0e0; font-weight: 500; }
+    .stat-sub { font-size: 11px; color: #ffffff40; margin-top: 2px; }
+
+    .divider { height: 1px; background: rgba(110,240,165,.12); margin: 10px 0; }
+
+    /* ---------- Controls ---------- */
+    #controls {
+      position: absolute;
+      bottom: 28px; right: 28px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .btn {
+      background: rgba(16,18,34,.88);
+      border: 1px solid rgba(110,240,165,.22);
+      border-radius: 10px;
+      padding: 10px 18px;
+      color: #e0e0e0;
+      font-size: 13px;
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+      transition: all .2s;
+    }
+    .btn:hover { background: rgba(110,240,165,.14); border-color: rgba(110,240,165,.5); color: #fff; }
+    .btn.active { background: rgba(110,240,165,.2); border-color: #6ef0a5; color: #6ef0a5; }
+
+    /* ---------- Run log ---------- */
+    #run-log {
+      position: absolute;
+      top: 70px; right: 28px;
+      z-index: 10;
+      background: rgba(16,18,34,.88);
+      border: 1px solid rgba(110,240,165,.18);
+      border-radius: 16px;
+      padding: 18px 22px;
+      width: 260px;
+      max-height: 340px;
+      overflow-y: auto;
+      backdrop-filter: blur(14px);
+      display: none;
+    }
+    #run-log.open { display: block; }
+    #run-log h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #ffffff60; margin-bottom: 12px; }
+
+    .log-entry {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .log-entry:last-child { border-bottom: none; }
+    .log-date { font-size: 11px; color: #ffffff40; }
+    .log-info { font-size: 14px; font-weight: 600; color: #e0e0e0; }
+    .log-info em { color: #6ef0a5; font-style: normal; }
+    .log-location { font-size: 11px; color: #ffffff50; }
+
+    /* ---------- Tooltip ---------- */
+    #tooltip {
+      position: absolute;
+      z-index: 20;
+      background: rgba(16,18,34,.95);
+      border: 1px solid rgba(110,240,165,.3);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      pointer-events: none;
+      display: none;
+      backdrop-filter: blur(10px);
+    }
+
+    /* ---------- Connection status ---------- */
+    .connection-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #ffffff60;
+    }
+    .connection-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #6ef0a5;
+      box-shadow: 0 0 6px #6ef0a5;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+
+    /* ---------- Settings panel ---------- */
+    #settings-panel {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+      background: rgba(12,14,28,.96);
+      border: 1px solid rgba(110,240,165,.25);
+      border-radius: 18px;
+      padding: 28px 32px;
+      width: 480px;
+      max-height: 80vh;
+      overflow-y: auto;
+      backdrop-filter: blur(20px);
+      display: none;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    }
+    #settings-panel.open { display: block; }
+    #settings-panel h2 {
+      font-size: 16px; font-weight: 700; color: #6ef0a5;
+      margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase;
+    }
+    #settings-panel .settings-sub {
+      font-size: 11px; color: #ffffff40; margin-bottom: 18px;
+    }
+    .settings-group { margin-bottom: 18px; }
+    .settings-group label {
+      display: block; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 1px; color: #ffffff50; margin-bottom: 6px;
+    }
+    .settings-group input, .settings-group select {
+      width: 100%; padding: 8px 12px; border-radius: 8px;
+      border: 1px solid rgba(110,240,165,.2); background: rgba(255,255,255,.06);
+      color: #e0e0e0; font-size: 13px; font-family: inherit;
+      outline: none; transition: border-color .2s;
+    }
+    .settings-group input:focus, .settings-group select:focus {
+      border-color: rgba(110,240,165,.5);
+    }
+    .settings-row { display: flex; gap: 12px; }
+    .settings-row .settings-group { flex: 1; }
+    .settings-group textarea {
+      width: 100%; padding: 10px 12px; border-radius: 8px;
+      border: 1px solid rgba(110,240,165,.2); background: rgba(255,255,255,.06);
+      color: #e0e0e0; font-size: 12px; font-family: 'SF Mono', 'Fira Code', monospace;
+      outline: none; resize: vertical; min-height: 120px; line-height: 1.5;
+      transition: border-color .2s;
+    }
+    .settings-group textarea:focus { border-color: rgba(110,240,165,.5); }
+    .settings-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+    .settings-actions .btn { padding: 10px 22px; font-weight: 600; }
+    .btn-primary { background: rgba(110,240,165,.18); border-color: #6ef0a5; color: #6ef0a5; }
+    .btn-primary:hover { background: rgba(110,240,165,.3); }
+    .settings-error { color: #ff6b6b; font-size: 12px; margin-top: 6px; display: none; }
+    #settings-overlay {
+      position: absolute; inset: 0; z-index: 99;
+      background: rgba(0,0,0,.4); display: none;
+    }
+    #settings-overlay.open { display: block; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(110,240,165,.25); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <div id="globe-container"></div>
+
+  <!-- Top bar -->
+  <div id="top-bar">
+    <div class="logo">GLOBET <span>your miles, mapped</span></div>
+    <div class="connection-badge">
+      <div class="connection-dot"></div>
+      Syncing with RunTracker
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div id="stats-panel">
+    <div class="stat-row">
+      <span class="stat-label">Total Distance</span>
+      <span class="stat-value" id="total-miles">0 mi</span>
+    </div>
+    <div class="stat-sub" id="km-equivalent">0 km</div>
+    <div class="divider"></div>
+    <div class="stat-row">
+      <span class="stat-label">Lap</span>
+      <span class="stat-value" id="current-lap" style="font-size:18px">1</span>
+    </div>
+    <div class="stat-sub" id="lap-progress">0% of current lap</div>
+    <div class="divider"></div>
+    <div class="stat-row">
+      <span class="stat-label">Cities Reached</span>
+      <span class="stat-value small" id="cities-reached">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Current Location</span>
+      <span class="stat-value small" id="current-city">--</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat-row">
+      <span class="stat-label">Runs Logged</span>
+      <span class="stat-value small" id="runs-count">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Avg Pace</span>
+      <span class="stat-value small" id="avg-pace">--</span>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div id="controls">
+    <button class="btn" id="btn-settings">Edit Data</button>
+    <button class="btn" id="btn-log">Run Log</button>
+    <button class="btn" id="btn-animate">Replay Path</button>
+    <button class="btn" id="btn-sync">Sync New Run</button>
+  </div>
+
+  <!-- Settings overlay -->
+  <div id="settings-overlay"></div>
+  <div id="settings-panel">
+    <h2>Mock Data Settings</h2>
+    <p class="settings-sub">Edit the simulated running data. Changes apply instantly.</p>
+
+    <div class="settings-row">
+      <div class="settings-group">
+        <label>Number of Runs</label>
+        <input type="number" id="set-num-runs" min="1" max="5000" value="800" />
+      </div>
+      <div class="settings-group">
+        <label>Start Date</label>
+        <input type="date" id="set-start-date" value="2020-01-06" />
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-group">
+        <label>Min Miles / Run</label>
+        <input type="number" id="set-min-miles" min="0.5" max="50" step="0.5" value="5" />
+      </div>
+      <div class="settings-group">
+        <label>Max Miles / Run</label>
+        <input type="number" id="set-max-miles" min="1" max="50" step="0.5" value="18" />
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-group">
+        <label>Days Between Runs</label>
+        <input type="number" id="set-days-gap" min="0.5" max="14" step="0.1" value="2.5" />
+      </div>
+      <div class="settings-group">
+        <label>Avg Pace (min/mi)</label>
+        <input type="number" id="set-avg-pace" min="4" max="16" step="0.1" value="8.5" />
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <label>Route (JSON array &mdash; name, lat, lng, country)</label>
+      <textarea id="set-route" spellcheck="false"></textarea>
+    </div>
+    <div class="settings-error" id="settings-error"></div>
+
+    <div class="settings-actions">
+      <button class="btn" id="btn-settings-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-settings-apply">Apply</button>
+    </div>
+  </div>
+
+  <!-- Run log -->
+  <div id="run-log">
+    <h3>Recent Runs</h3>
+    <div id="log-entries"></div>
+  </div>
+
+  <div id="tooltip"></div>
+
+  <!-- Three.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    // =====================================================
+    // MOCK DATA CONFIG — Edit these to change the simulation
+    // =====================================================
+    const MOCK_CONFIG = {
+      numRuns: 800,
+      startDate: '2020-01-06',
+      minMilesPerRun: 5,
+      maxMilesPerRun: 18,
+      daysBetweenRuns: 2.5,
+      avgPace: 8.5,         // minutes per mile
+
+      // Route: shortest path circumnavigation from McAllen, TX heading east.
+      // Each hop goes to the nearest major city in the forward direction.
+      // Total route ~24,900 mi — roughly Earth's circumference at this latitude.
+      route: [
+        // --- Start: South Texas ---
+        { name: "McAllen",          lat: 26.2034,  lng: -98.2300,  country: "US" },
+        { name: "Houston",          lat: 29.7604,  lng: -95.3698,  country: "US" },
+        { name: "New Orleans",      lat: 29.9511,  lng: -90.0715,  country: "US" },
+        { name: "Miami",            lat: 25.7617,  lng: -80.1918,  country: "US" },
+        // --- Atlantic crossing (shortest: Miami → Azores → Lisbon) ---
+        { name: "Bermuda",          lat: 32.3078,  lng: -64.7505,  country: "BM" },
+        { name: "Azores",           lat: 37.7412,  lng: -25.6756,  country: "PT" },
+        { name: "Lisbon",           lat: 38.7223,  lng: -9.1393,   country: "PT" },
+        // --- Southern Europe (staying near ~30-40°N latitude belt) ---
+        { name: "Madrid",           lat: 40.4168,  lng: -3.7038,   country: "ES" },
+        { name: "Barcelona",        lat: 41.3851,  lng: 2.1734,    country: "ES" },
+        { name: "Rome",             lat: 41.9028,  lng: 12.4964,   country: "IT" },
+        { name: "Athens",           lat: 37.9838,  lng: 23.7275,   country: "GR" },
+        // --- Eastern Mediterranean → Middle East ---
+        { name: "Istanbul",         lat: 41.0082,  lng: 28.9784,   country: "TR" },
+        { name: "Ankara",           lat: 39.9334,  lng: 32.8597,   country: "TR" },
+        { name: "Tehran",           lat: 35.6892,  lng: 51.3890,   country: "IR" },
+        // --- Central/South Asia (staying ~25-35°N) ---
+        { name: "Karachi",          lat: 24.8607,  lng: 67.0011,   country: "PK" },
+        { name: "Mumbai",           lat: 19.0760,  lng: 72.8777,   country: "IN" },
+        { name: "Delhi",            lat: 28.6139,  lng: 77.2090,   country: "IN" },
+        { name: "Kolkata",          lat: 22.5726,  lng: 88.3639,   country: "IN" },
+        // --- Southeast Asia ---
+        { name: "Bangkok",          lat: 13.7563,  lng: 100.5018,  country: "TH" },
+        { name: "Ho Chi Minh City", lat: 10.8231,  lng: 106.6297,  country: "VN" },
+        { name: "Hong Kong",        lat: 22.3193,  lng: 114.1694,  country: "HK" },
+        // --- East Asia ---
+        { name: "Taipei",           lat: 25.0330,  lng: 121.5654,  country: "TW" },
+        { name: "Shanghai",         lat: 31.2304,  lng: 121.4737,  country: "CN" },
+        { name: "Tokyo",            lat: 35.6762,  lng: 139.6503,  country: "JP" },
+        // --- Pacific crossing (shortest: Tokyo → Honolulu → LA) ---
+        { name: "Honolulu",         lat: 21.3069,  lng: -157.8583, country: "US" },
+        { name: "Los Angeles",      lat: 34.0522,  lng: -118.2437, country: "US" },
+        // --- Back to McAllen across the US Southwest ---
+        { name: "Phoenix",          lat: 33.4484,  lng: -112.0740, country: "US" },
+        { name: "El Paso",          lat: 31.7619,  lng: -106.4850, country: "US" },
+        { name: "McAllen",          lat: 26.2034,  lng: -98.2300,  country: "US" },
+      ],
+    };
+
+    // =====================================================
+    // MOCK RUNNING DATA SERVICE
+    // Simulates pulling data from a user's running app
+    // (e.g. Strava, Nike Run Club, Apple Health, etc.)
+    // =====================================================
+    const MockRunService = (() => {
+
+      let ROUTE_CITIES = [...MOCK_CONFIG.route];
+      let segmentDistances = [];
+      let runs = [];
+      let cumulativeMiles = 0;
+
+      function haversine(lat1, lng1, lat2, lng2) {
+        const R = 3958.8;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 +
+                  Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) *
+                  Math.sin(dLng/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      }
+
+      function rebuild(config) {
+        ROUTE_CITIES = [...config.route];
+        segmentDistances = [];
+        for (let i = 1; i < ROUTE_CITIES.length; i++) {
+          const a = ROUTE_CITIES[i-1], b = ROUTE_CITIES[i];
+          segmentDistances.push(haversine(a.lat, a.lng, b.lat, b.lng));
+        }
+
+        runs = [];
+        cumulativeMiles = 0;
+        const startDate = new Date(config.startDate);
+        const paceCenter = config.avgPace;
+
+        for (let i = 0; i < config.numRuns; i++) {
+          const date = new Date(startDate);
+          date.setDate(date.getDate() + Math.floor(i * config.daysBetweenRuns));
+          const miles = config.minMilesPerRun + Math.random() * (config.maxMilesPerRun - config.minMilesPerRun);
+          const pace = paceCenter + (Math.random() - 0.5) * 2;
+          cumulativeMiles += miles;
+          runs.push({
+            id: i + 1,
+            date: date.toISOString().split('T')[0],
+            miles: +miles.toFixed(2),
+            pace: `${Math.floor(pace)}:${String(Math.round((pace%1)*60)).padStart(2,'0')}`,
+            cumulative: +cumulativeMiles.toFixed(2),
+          });
+        }
+      }
+
+      // Initial build
+      rebuild(MOCK_CONFIG);
+
+      function getPositionAtMiles(miles) {
+        const routeLen = segmentDistances.reduce((a,b) => a+b, 0);
+        const lap = routeLen > 0 ? Math.floor(miles / routeLen) : 0;
+        let remaining = routeLen > 0 ? miles % routeLen : miles;
+        // If exactly on a lap boundary and miles > 0, treat as end of previous lap
+        if (remaining === 0 && miles > 0) {
+          const last = ROUTE_CITIES[ROUTE_CITIES.length - 1];
+          return { lat: last.lat, lng: last.lng, segmentIndex: segmentDistances.length - 1, t: 1, nearCity: last.name, lap };
+        }
+        for (let i = 0; i < segmentDistances.length; i++) {
+          if (remaining <= segmentDistances[i]) {
+            const t = remaining / segmentDistances[i];
+            const a = ROUTE_CITIES[i], b = ROUTE_CITIES[i+1];
+            return {
+              lat: a.lat + t * (b.lat - a.lat),
+              lng: a.lng + t * (b.lng - a.lng),
+              segmentIndex: i,
+              t,
+              nearCity: t < 0.5 ? a.name : b.name,
+              lap,
+            };
+          }
+          remaining -= segmentDistances[i];
+        }
+        const last = ROUTE_CITIES[ROUTE_CITIES.length - 1];
+        return { lat: last.lat, lng: last.lng, segmentIndex: segmentDistances.length - 1, t: 1, nearCity: last.name, lap };
+      }
+
+      function getTotalRoute() { return segmentDistances.reduce((a,b) => a+b, 0); }
+
+      return {
+        get ROUTE_CITIES() { return ROUTE_CITIES; },
+        get segmentDistances() { return segmentDistances; },
+        get runs() { return runs; },
+        get totalMiles() { return cumulativeMiles; },
+        getPositionAtMiles,
+        getTotalRoute,
+        haversine,
+        rebuild,
+        fetchRuns() {
+          return new Promise(resolve => setTimeout(() => resolve([...runs]), 400));
+        },
+        syncNewRun() {
+          const lastRun = runs[runs.length - 1];
+          const newDate = new Date(lastRun.date);
+          newDate.setDate(newDate.getDate() + Math.round(MOCK_CONFIG.daysBetweenRuns));
+          const miles = MOCK_CONFIG.minMilesPerRun + Math.random() * (MOCK_CONFIG.maxMilesPerRun - MOCK_CONFIG.minMilesPerRun);
+          const pace = MOCK_CONFIG.avgPace + (Math.random() - 0.5) * 2;
+          cumulativeMiles += miles;
+          const newRun = {
+            id: runs.length + 1,
+            date: newDate.toISOString().split('T')[0],
+            miles: +miles.toFixed(2),
+            pace: `${Math.floor(pace)}:${String(Math.round((pace%1)*60)).padStart(2,'0')}`,
+            cumulative: +cumulativeMiles.toFixed(2),
+          };
+          runs.push(newRun);
+          return new Promise(resolve => setTimeout(() => resolve(newRun), 600));
+        }
+      };
+    })();
+
+
+    // =====================================================
+    // THREE.JS GLOBE
+    // =====================================================
+    const container = document.getElementById('globe-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0.6, 2.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+
+    // Controls
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.rotateSpeed = 0.5;
+    controls.minDistance = 1.6;
+    controls.maxDistance = 5;
+    controls.enablePan = false;
+
+    // Lights — tuned for textured Earth
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    dirLight.position.set(5, 3, 5);
+    scene.add(dirLight);
+    const fillLight = new THREE.DirectionalLight(0x4466aa, 0.3);
+    fillLight.position.set(-5, -2, -3);
+    scene.add(fillLight);
+
+    // Stars
+    const starsGeo = new THREE.BufferGeometry();
+    const starVerts = [];
+    for (let i = 0; i < 6000; i++) {
+      starVerts.push((Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80);
+    }
+    starsGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
+    scene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.06 })));
+
+    // Globe group — everything that rotates together goes in here
+    const GLOBE_RADIUS = 1;
+    const globeGroup = new THREE.Group();
+    scene.add(globeGroup);
+
+    // Earth sphere with high-res NASA textures
+    const textureLoader = new THREE.TextureLoader();
+    const maxAniso = renderer.capabilities.getMaxAnisotropy();
+    const globeGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 128, 128);
+
+    // Texture sources — using three-globe CDN (reliable CORS headers)
+    const earthDayMap = 'https://unpkg.com/three-globe@2.31.1/example/img/earth-blue-marble.jpg';
+    const earthNightMap = 'https://unpkg.com/three-globe@2.31.1/example/img/earth-night.jpg';
+    const earthBumpMap = 'https://unpkg.com/three-globe@2.31.1/example/img/earth-topology.png';
+    const earthSpecMap = 'https://unpkg.com/three-globe@2.31.1/example/img/earth-water.png';
+
+    // Start dark so the globe isn't white while textures load
+    const globeMat = new THREE.MeshPhongMaterial({
+      color: 0x1a1a2e,
+      shininess: 30,
+    });
+    const globe = new THREE.Mesh(globeGeo, globeMat);
+    globeGroup.add(globe);
+
+    // Helper: configure texture for max sharpness
+    function configTex(tex) {
+      tex.anisotropy = maxAniso;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      return tex;
+    }
+
+    // Load textures asynchronously
+    textureLoader.load(earthDayMap, (tex) => {
+      configTex(tex);
+      globeMat.map = tex;
+      globeMat.color.set(0xffffff);
+      globeMat.needsUpdate = true;
+    });
+    textureLoader.load(earthBumpMap, (tex) => {
+      configTex(tex);
+      globeMat.bumpMap = tex;
+      globeMat.bumpScale = 0.018;
+      globeMat.needsUpdate = true;
+    });
+    textureLoader.load(earthSpecMap, (tex) => {
+      configTex(tex);
+      globeMat.specularMap = tex;
+      globeMat.specular = new THREE.Color(0x444444);
+      globeMat.needsUpdate = true;
+    });
+
+    // Cloud layer
+    const cloudGeo = new THREE.SphereGeometry(GLOBE_RADIUS + 0.006, 64, 64);
+    const cloudMat = new THREE.MeshPhongMaterial({
+      transparent: true,
+      opacity: 0.18,
+      color: 0xffffff,
+      depthWrite: false,
+    });
+    const clouds = new THREE.Mesh(cloudGeo, cloudMat);
+    globeGroup.add(clouds);
+    textureLoader.load('https://unpkg.com/three-globe@2.31.1/example/img/earth-clouds.png', (tex) => {
+      tex.anisotropy = maxAniso;
+      cloudMat.map = tex;
+      cloudMat.alphaMap = tex;
+      cloudMat.needsUpdate = true;
+    });
+
+    // Atmosphere glow
+    const glowGeo = new THREE.SphereGeometry(GLOBE_RADIUS + 0.1, 64, 64);
+    const glowMat = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vPositionW;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vPositionW = (modelMatrix * vec4(position, 1.0)).xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+          float intensity = pow(0.62 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
+          vec3 col = mix(vec3(0.3, 0.6, 1.0), vec3(0.43, 0.94, 0.65), 0.35);
+          gl_FragColor = vec4(col, 1.0) * intensity * 0.65;
+        }
+      `,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+    });
+    scene.add(new THREE.Mesh(glowGeo, glowMat));
+
+
+    // =====================================================
+    // HELPERS
+    // =====================================================
+    function latLngToVec3(lat, lng, r = GLOBE_RADIUS) {
+      const phi = (90 - lat) * Math.PI / 180;
+      const theta = (lng + 180) * Math.PI / 180;
+      return new THREE.Vector3(
+        -r * Math.sin(phi) * Math.cos(theta),
+         r * Math.cos(phi),
+         r * Math.sin(phi) * Math.sin(theta),
+      );
+    }
+
+    // Great-circle arc between two points
+    function greatCirclePoints(lat1, lng1, lat2, lng2, segments = 60, altitude = 0.006) {
+      const pts = [];
+      const v1 = latLngToVec3(lat1, lng1, GLOBE_RADIUS + altitude);
+      const v2 = latLngToVec3(lat2, lng2, GLOBE_RADIUS + altitude);
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const v = new THREE.Vector3().lerpVectors(v1, v2, t).normalize()
+          .multiplyScalar(GLOBE_RADIUS + altitude + Math.sin(t * Math.PI) * 0.02);
+        pts.push(v);
+      }
+      return pts;
+    }
+
+
+    // =====================================================
+    // CITY MARKERS & PATH RENDERING
+    // =====================================================
+    const cityMarkers = [];
+    const pathLines = [];
+    let currentPosMarker = null;
+    let trailLine = null;
+    let trailProgress = 1; // 0-1 for animation
+
+    function createCityMarker(city, reached, timesVisited = 0) {
+      // Scale marker slightly with visits
+      const baseSize = 0.014;
+      const size = reached ? baseSize + Math.min(timesVisited - 1, 4) * 0.003 : baseSize;
+      const geo = new THREE.SphereGeometry(size, 16, 16);
+
+      // Color based on visit count
+      let color = 0xaaaacc;
+      if (timesVisited >= 1) color = 0x00ff88;
+      if (timesVisited >= 2) color = 0x55bbff;
+      if (timesVisited >= 3) color = 0xffaa44;
+
+      const mat = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: reached ? 1.0 : 0.6,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      const pos = latLngToVec3(city.lat, city.lng, GLOBE_RADIUS + 0.01);
+      mesh.position.copy(pos);
+      mesh.userData = { city, timesVisited };
+      globeGroup.add(mesh);
+
+      // Glow ring — stacks for multiple visits
+      if (reached) {
+        for (let v = 0; v < Math.min(timesVisited, 3); v++) {
+          const ringInner = 0.018 + v * 0.012;
+          const ringOuter = ringInner + 0.008;
+          const ringGeo = new THREE.RingGeometry(ringInner, ringOuter, 32);
+          const ringColor = getLapColor(v);
+          const ringMat = new THREE.MeshBasicMaterial({ color: ringColor, transparent: true, opacity: 0.4 - v * 0.08, side: THREE.DoubleSide });
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.position.copy(pos);
+          ring.lookAt(new THREE.Vector3(0,0,0));
+          globeGroup.add(ring);
+          pathLines.push(ring); // track for cleanup
+        }
+      }
+
+      return mesh;
+    }
+
+    function clearPath() {
+      pathLines.forEach(l => globeGroup.remove(l));
+      pathLines.length = 0;
+      cityMarkers.forEach(m => globeGroup.remove(m));
+      cityMarkers.length = 0;
+      if (currentPosMarker) { globeGroup.remove(currentPosMarker); currentPosMarker = null; }
+      if (trailLine) { globeGroup.remove(trailLine); trailLine = null; }
+    }
+
+    // Lap colors — each lap gets a distinct color, stacking upward
+    const LAP_COLORS = [
+      0x6ef0a5,  // Lap 1: green
+      0x55bbff,  // Lap 2: blue
+      0xffaa44,  // Lap 3: orange
+      0xff66aa,  // Lap 4: pink
+      0xccaaff,  // Lap 5: purple
+      0xffee55,  // Lap 6: yellow
+      0x55ffee,  // Lap 7: cyan
+      0xff7755,  // Lap 8: red-orange
+    ];
+    const LAP_ALTITUDE_STEP = 0.014; // each lap lifts slightly higher
+
+    function getLapColor(lap) {
+      return LAP_COLORS[lap % LAP_COLORS.length];
+    }
+
+    function renderPath(totalMiles, animationT = 1) {
+      clearPath();
+
+      const cities = MockRunService.ROUTE_CITIES;
+      const dists = MockRunService.segmentDistances;
+      const routeLen = MockRunService.getTotalRoute();
+      const effectiveMiles = totalMiles * animationT;
+
+      if (routeLen === 0) return 0;
+
+      const fullLaps = Math.floor(effectiveMiles / routeLen);
+      const partialMiles = effectiveMiles % routeLen;
+      // If exactly on boundary, count as completed lap
+      const totalLaps = partialMiles === 0 && effectiveMiles > 0 ? fullLaps : fullLaps + 1;
+
+      // Draw city markers — show how many times visited
+      let citiesReachedCount = 1;
+      for (let i = 0; i < cities.length; i++) {
+        let timesReached = 0;
+        if (i === 0) timesReached = Math.max(1, fullLaps + 1);
+        else {
+          // Fully passed in all complete laps
+          timesReached = fullLaps;
+          // Check if passed in partial lap
+          let distToCity = 0;
+          for (let j = 0; j < i; j++) distToCity += dists[j];
+          if (partialMiles >= distToCity || (partialMiles === 0 && effectiveMiles > 0)) {
+            timesReached++;
+          }
+        }
+        if (timesReached > 0) citiesReachedCount++;
+        const m = createCityMarker(cities[i], timesReached > 0, timesReached);
+        cityMarkers.push(m);
+      }
+
+      // Draw each completed lap as a full path
+      for (let lap = 0; lap < fullLaps; lap++) {
+        const altitude = 0.006 + lap * LAP_ALTITUDE_STEP;
+        const color = getLapColor(lap);
+        const lapPts = [];
+
+        for (let i = 0; i < dists.length; i++) {
+          const c1 = cities[i], c2 = cities[i+1];
+          const pts = greatCirclePoints(c1.lat, c1.lng, c2.lat, c2.lng, 60, altitude);
+          lapPts.push(...pts);
+        }
+
+        if (lapPts.length > 1) {
+          const geo = new THREE.BufferGeometry().setFromPoints(lapPts);
+          // Older laps get slightly more transparent
+          const opacity = Math.max(0.35, 0.85 - lap * 0.12);
+          const mat = new THREE.LineBasicMaterial({ color, linewidth: 2, transparent: true, opacity });
+          const line = new THREE.Line(geo, mat);
+          globeGroup.add(line);
+          pathLines.push(line);
+
+          // Glow
+          const glowGeo = new THREE.BufferGeometry().setFromPoints(lapPts);
+          const glowMat = new THREE.LineBasicMaterial({ color, linewidth: 1, transparent: true, opacity: opacity * 0.25 });
+          const glowLine = new THREE.Line(glowGeo, glowMat);
+          globeGroup.add(glowLine);
+          pathLines.push(glowLine);
+        }
+      }
+
+      // Draw the current (partial) lap
+      if (partialMiles > 0 || (effectiveMiles === 0)) {
+        const currentLap = fullLaps;
+        const altitude = 0.006 + currentLap * LAP_ALTITUDE_STEP;
+        const color = getLapColor(currentLap);
+        const reachedSegments = [];
+        let temp = partialMiles;
+
+        for (let i = 0; i < dists.length; i++) {
+          if (temp >= dists[i]) {
+            reachedSegments.push({ from: i, to: i+1, t: 1 });
+            temp -= dists[i];
+          } else {
+            if (temp > 0) reachedSegments.push({ from: i, to: i+1, t: temp / dists[i] });
+            break;
+          }
+        }
+
+        const partialPts = [];
+        for (const seg of reachedSegments) {
+          const c1 = cities[seg.from], c2 = cities[seg.to];
+          const lat2 = c1.lat + seg.t * (c2.lat - c1.lat);
+          const lng2 = c1.lng + seg.t * (c2.lng - c1.lng);
+          const pts = greatCirclePoints(c1.lat, c1.lng, lat2, lng2, Math.max(20, Math.floor(seg.t * 60)), altitude);
+          partialPts.push(...pts);
+        }
+
+        if (partialPts.length > 1) {
+          const geo = new THREE.BufferGeometry().setFromPoints(partialPts);
+          const mat = new THREE.LineBasicMaterial({ color, linewidth: 2, transparent: true, opacity: 0.85 });
+          trailLine = new THREE.Line(geo, mat);
+          globeGroup.add(trailLine);
+          pathLines.push(trailLine);
+
+          const glowGeo = new THREE.BufferGeometry().setFromPoints(partialPts);
+          const glowMat = new THREE.LineBasicMaterial({ color, linewidth: 1, transparent: true, opacity: 0.2 });
+          const glowLine = new THREE.Line(glowGeo, glowMat);
+          globeGroup.add(glowLine);
+          pathLines.push(glowLine);
+        }
+      }
+
+      // Current position marker
+      const pos = MockRunService.getPositionAtMiles(effectiveMiles);
+      const currentLap = pos.lap || 0;
+      const markerAlt = GLOBE_RADIUS + 0.01 + currentLap * LAP_ALTITUDE_STEP;
+      const markerPos = latLngToVec3(pos.lat, pos.lng, markerAlt);
+
+      const markerGeo = new THREE.SphereGeometry(0.018, 16, 16);
+      const markerMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      currentPosMarker = new THREE.Mesh(markerGeo, markerMat);
+      currentPosMarker.position.copy(markerPos);
+      globeGroup.add(currentPosMarker);
+
+      // Pulse ring
+      const ringGeo = new THREE.RingGeometry(0.022, 0.035, 32);
+      const ringColor = getLapColor(currentLap);
+      const ringMat = new THREE.MeshBasicMaterial({ color: ringColor, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.copy(markerPos);
+      ring.lookAt(new THREE.Vector3(0,0,0));
+      ring.userData.isPulse = true;
+      globeGroup.add(ring);
+      pathLines.push(ring);
+
+      return { citiesReached: citiesReachedCount, totalLaps, currentLap: currentLap + 1 };
+    }
+
+
+    // =====================================================
+    // UI UPDATES
+    // =====================================================
+    function updateStats(runs) {
+      const total = runs[runs.length - 1].cumulative;
+      document.getElementById('total-miles').textContent = `${Math.round(total).toLocaleString()} mi`;
+      document.getElementById('km-equivalent').textContent = `${Math.round(total * 1.60934).toLocaleString()} km`;
+      document.getElementById('runs-count').textContent = runs.length;
+
+      const avgPaceMin = runs.reduce((s, r) => {
+        const parts = r.pace.split(':');
+        return s + (+parts[0]) + (+parts[1])/60;
+      }, 0) / runs.length;
+      document.getElementById('avg-pace').textContent =
+        `${Math.floor(avgPaceMin)}:${String(Math.round((avgPaceMin%1)*60)).padStart(2,'0')} /mi`;
+
+      const pos = MockRunService.getPositionAtMiles(total);
+      document.getElementById('current-city').textContent = pos.nearCity;
+
+      const result = renderPath(total);
+      document.getElementById('cities-reached').textContent = result.citiesReached;
+      document.getElementById('current-lap').textContent = result.currentLap;
+
+      // Lap progress
+      const routeLen = MockRunService.getTotalRoute();
+      if (routeLen > 0) {
+        const partialMiles = total % routeLen;
+        const pct = Math.round((partialMiles / routeLen) * 100);
+        document.getElementById('lap-progress').textContent =
+          result.currentLap > 1
+            ? `${pct}% of lap ${result.currentLap} (${result.currentLap - 1} completed)`
+            : `${pct}% of first lap`;
+      }
+    }
+
+    function renderRunLog(runs) {
+      const el = document.getElementById('log-entries');
+      const recent = runs.slice(-15).reverse();
+      el.innerHTML = recent.map(r => {
+        const pos = MockRunService.getPositionAtMiles(r.cumulative);
+        const lapLabel = pos.lap > 0 ? ` (Lap ${pos.lap + 1})` : '';
+        return `
+          <div class="log-entry">
+            <div class="log-date">${r.date}</div>
+            <div class="log-info"><em>${r.miles} mi</em> at ${r.pace}/mi</div>
+            <div class="log-location">Near ${pos.nearCity}${lapLabel}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+
+    // =====================================================
+    // EVENT HANDLERS
+    // =====================================================
+    let allRuns = [];
+
+    // Toggle run log
+    document.getElementById('btn-log').addEventListener('click', () => {
+      const log = document.getElementById('run-log');
+      log.classList.toggle('open');
+      document.getElementById('btn-log').classList.toggle('active');
+    });
+
+    // Replay animation
+    document.getElementById('btn-animate').addEventListener('click', () => {
+      if (!allRuns.length) return;
+      const total = allRuns[allRuns.length - 1].cumulative;
+      let startTime = null;
+      const duration = 4000; // ms
+
+      function animateReplay(time) {
+        if (!startTime) startTime = time;
+        const elapsed = time - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        // Ease out
+        const eased = 1 - Math.pow(1 - t, 3);
+        renderPath(total, eased);
+
+        // Update miles counter during animation
+        const currentMiles = Math.round(total * eased);
+        document.getElementById('total-miles').textContent = `${currentMiles.toLocaleString()} mi`;
+        document.getElementById('km-equivalent').textContent = `${Math.round(currentMiles * 1.60934).toLocaleString()} km`;
+
+        if (t < 1) {
+          requestAnimationFrame(animateReplay);
+        } else {
+          updateStats(allRuns);
+        }
+      }
+      requestAnimationFrame(animateReplay);
+    });
+
+    // Sync new run
+    document.getElementById('btn-sync').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-sync');
+      btn.textContent = 'Syncing...';
+      btn.style.pointerEvents = 'none';
+
+      const newRun = await MockRunService.syncNewRun();
+      allRuns.push(newRun);
+
+      updateStats(allRuns);
+      renderRunLog(allRuns);
+
+      btn.textContent = `+${newRun.miles} mi!`;
+      setTimeout(() => {
+        btn.textContent = 'Sync New Run';
+        btn.style.pointerEvents = 'auto';
+      }, 1500);
+    });
+
+    // Tooltip on hover
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const tooltip = document.getElementById('tooltip');
+
+    renderer.domElement.addEventListener('mousemove', (e) => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(cityMarkers);
+      if (hits.length) {
+        const city = hits[0].object.userData.city;
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 14) + 'px';
+        tooltip.style.top = (e.clientY - 10) + 'px';
+        const visits = hits[0].object.userData.timesVisited || 0;
+        const visitText = visits > 1 ? `<br>Visited ${visits}x` : visits === 1 ? '<br>Visited' : '';
+        tooltip.innerHTML = `<strong>${city.name}</strong><br>${city.country}${visitText}`;
+      } else {
+        tooltip.style.display = 'none';
+      }
+    });
+
+    // =====================================================
+    // SETTINGS PANEL
+    // =====================================================
+    const settingsPanel = document.getElementById('settings-panel');
+    const settingsOverlay = document.getElementById('settings-overlay');
+    const routeTextarea = document.getElementById('set-route');
+    const settingsError = document.getElementById('settings-error');
+
+    function openSettings() {
+      // Populate fields from current config
+      document.getElementById('set-num-runs').value = MOCK_CONFIG.numRuns;
+      document.getElementById('set-start-date').value = MOCK_CONFIG.startDate;
+      document.getElementById('set-min-miles').value = MOCK_CONFIG.minMilesPerRun;
+      document.getElementById('set-max-miles').value = MOCK_CONFIG.maxMilesPerRun;
+      document.getElementById('set-days-gap').value = MOCK_CONFIG.daysBetweenRuns;
+      document.getElementById('set-avg-pace').value = MOCK_CONFIG.avgPace;
+      routeTextarea.value = JSON.stringify(MOCK_CONFIG.route, null, 2);
+      settingsError.style.display = 'none';
+      settingsPanel.classList.add('open');
+      settingsOverlay.classList.add('open');
+    }
+
+    function closeSettings() {
+      settingsPanel.classList.remove('open');
+      settingsOverlay.classList.remove('open');
+    }
+
+    function applySettings() {
+      try {
+        const route = JSON.parse(routeTextarea.value);
+        if (!Array.isArray(route) || route.length < 2) throw new Error('Route must be an array with at least 2 cities.');
+        for (const c of route) {
+          if (!c.name || c.lat == null || c.lng == null || !c.country)
+            throw new Error(`Invalid city entry: ${JSON.stringify(c)}`);
+        }
+        MOCK_CONFIG.numRuns = +document.getElementById('set-num-runs').value;
+        MOCK_CONFIG.startDate = document.getElementById('set-start-date').value;
+        MOCK_CONFIG.minMilesPerRun = +document.getElementById('set-min-miles').value;
+        MOCK_CONFIG.maxMilesPerRun = +document.getElementById('set-max-miles').value;
+        MOCK_CONFIG.daysBetweenRuns = +document.getElementById('set-days-gap').value;
+        MOCK_CONFIG.avgPace = +document.getElementById('set-avg-pace').value;
+        MOCK_CONFIG.route = route;
+
+        // Rebuild mock data and re-render
+        MockRunService.rebuild(MOCK_CONFIG);
+        allRuns = [...MockRunService.runs];
+        updateStats(allRuns);
+        renderRunLog(allRuns);
+        closeSettings();
+      } catch (e) {
+        settingsError.textContent = e.message;
+        settingsError.style.display = 'block';
+      }
+    }
+
+    document.getElementById('btn-settings').addEventListener('click', openSettings);
+    document.getElementById('btn-settings-cancel').addEventListener('click', closeSettings);
+    settingsOverlay.addEventListener('click', closeSettings);
+    document.getElementById('btn-settings-apply').addEventListener('click', applySettings);
+
+    // Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+
+    // =====================================================
+    // ANIMATION LOOP
+    // =====================================================
+    let time = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      time += 0.01;
+
+      // Very slow auto-rotate
+      globeGroup.rotation.y += 0.00012;
+      // Clouds drift slightly faster
+      clouds.rotation.y += 0.00002;
+
+      // Pulse the current-position ring
+      globeGroup.traverse(obj => {
+        if (obj.userData && obj.userData.isPulse) {
+          obj.scale.setScalar(1 + Math.sin(time * 3) * 0.15);
+          obj.material.opacity = 0.3 + Math.sin(time * 3) * 0.2;
+        }
+      });
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+
+    // =====================================================
+    // INIT — "Fetch" data from mock running app
+    // =====================================================
+    (async () => {
+      allRuns = await MockRunService.fetchRuns();
+      updateStats(allRuns);
+      renderRunLog(allRuns);
+    })();
+
+  </script>
+</body>
+</html>
