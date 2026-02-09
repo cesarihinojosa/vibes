@@ -1,3 +1,1 @@
-# Vibes
-
 This repository is my personal space for experimenting with AI and vibe coding. Each directory contains a small app or prototype built quickly to explore ideas, tools, and workflows, without worrying about polish or production readiness.
