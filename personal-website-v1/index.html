@@ -254,6 +254,17 @@
       transform: translate(-50%, -50%) scale(0.85);
     }
 
+    #panel-projects {
+      top: 50%;
+      left: 50%;
+    }
+    #panel-projects.active {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    #panel-projects:not(.active) {
+      transform: translate(-50%, -50%) scale(0.85);
+    }
+
     #panel-linkedin {
       top: 50%;
       left: 50%;
@@ -459,7 +470,7 @@
 
   <!-- Hint -->
   <div id="hint">
-    <p><span class="orbit-icon"></span> Click a region to explore</p>
+    <p><span class="orbit-icon"></span> Click an orb to explore</p>
   </div>
 
   <!-- Tooltip -->
@@ -503,6 +514,20 @@
     <a href="https://github.com/cesarihinojosa" target="_blank" rel="noopener" class="link-btn">
       <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       Visit GitHub
+    </a>
+  </div>
+
+  <div class="content-panel" id="panel-projects">
+    <button class="close-btn" onclick="closePanel('projects')">&times;</button>
+    <h2>Projects</h2>
+    <div class="divider"></div>
+    <div class="project-card">
+      <h3>Coming Soon</h3>
+      <p>Projects will be showcased here. Check back soon or visit my GitHub for the latest work.</p>
+    </div>
+    <a href="https://github.com/cesarihinojosa" target="_blank" rel="noopener" class="link-btn">
+      <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      Browse Projects
     </a>
   </div>
 
@@ -728,91 +753,6 @@
         ctx.fill();
       }
 
-      // Region colors and boundaries (scaled up)
-      const regions = [
-        { name: 'about', x: 120*S, y: 140*S, w: 180*S, h: 130*S, color: 'rgba(255, 210, 100, 0.5)', borderColor: '#FFD166', shadow: 'rgba(200, 160, 50, 0.3)' },
-        { name: 'github', x: 450*S, y: 100*S, w: 160*S, h: 120*S, color: 'rgba(200, 100, 50, 0.5)', borderColor: '#DD6633', shadow: 'rgba(150, 60, 20, 0.3)' },
-        { name: 'linkedin', x: 700*S, y: 200*S, w: 170*S, h: 130*S, color: 'rgba(80, 140, 220, 0.4)', borderColor: '#5599DD', shadow: 'rgba(40, 80, 160, 0.3)' },
-      ];
-
-      // Draw region patches (cartoon continents) - smooth bezier curves
-      for (const region of regions) {
-        const cx = region.x + region.w / 2;
-        const cy = region.y + region.h / 2;
-        const points = 24; // more points = smoother blob
-
-        // Generate smooth blob path
-        function getBlobPath(scale) {
-          const pts = [];
-          for (let i = 0; i < points; i++) {
-            const angle = (i / points) * Math.PI * 2;
-            const rx = (region.w / 2) * scale * (0.75 + Math.sin(angle * 3 + region.x * 0.01) * 0.2 + Math.sin(angle * 5 + region.y * 0.01) * 0.08);
-            const ry = (region.h / 2) * scale * (0.75 + Math.cos(angle * 2 + region.y * 0.01) * 0.2 + Math.cos(angle * 4 + region.x * 0.01) * 0.08);
-            pts.push({ x: cx + Math.cos(angle) * rx, y: cy + Math.sin(angle) * ry });
-          }
-          return pts;
-        }
-
-        function drawBlobPath(pts) {
-          ctx.beginPath();
-          ctx.moveTo(pts[0].x, pts[0].y);
-          for (let i = 0; i < pts.length; i++) {
-            const curr = pts[i];
-            const next = pts[(i + 1) % pts.length];
-            const cp1x = curr.x + (next.x - pts[(i - 1 + pts.length) % pts.length].x) * 0.15;
-            const cp1y = curr.y + (next.y - pts[(i - 1 + pts.length) % pts.length].y) * 0.15;
-            const cp2x = next.x - (pts[(i + 2) % pts.length].x - curr.x) * 0.15;
-            const cp2y = next.y - (pts[(i + 2) % pts.length].y - curr.y) * 0.15;
-            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
-          }
-          ctx.closePath();
-        }
-
-        // Shadow / elevation effect
-        ctx.save();
-        const shadowPts = getBlobPath(1.08);
-        drawBlobPath(shadowPts);
-        ctx.fillStyle = region.shadow;
-        ctx.fill();
-        ctx.restore();
-
-        // Main region fill
-        ctx.save();
-        const mainPts = getBlobPath(1.0);
-        drawBlobPath(mainPts);
-        ctx.fillStyle = region.color;
-        ctx.fill();
-        // Crisp border
-        ctx.strokeStyle = region.borderColor;
-        ctx.lineWidth = 3 * S;
-        ctx.globalAlpha = 0.7;
-        ctx.stroke();
-        ctx.restore();
-
-        // Inner highlight
-        ctx.save();
-        const innerPts = getBlobPath(0.6);
-        drawBlobPath(innerPts);
-        ctx.fillStyle = `rgba(255, 255, 255, 0.06)`;
-        ctx.fill();
-        ctx.restore();
-
-        // Region label on texture - crisp text
-        ctx.save();
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        // Icon
-        const icon = { about: '\u2302', github: '\u2663', linkedin: '\u263A', projects: '\u2605', contact: '\u2709' };
-        ctx.font = `bold ${28 * S}px monospace`;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.fillText(icon[region.name] || '', cx, cy - 10 * S);
-        // Label
-        ctx.font = `bold ${13 * S}px monospace`;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-        ctx.fillText(region.name.toUpperCase(), cx, cy + 16 * S);
-        ctx.restore();
-      }
-
       // Surface texture - layered noise for rocky/earthy feel
       // Large splotches for color variation
       for (let i = 0; i < 80; i++) {
@@ -1035,79 +975,202 @@
     scene.add(rimLight);
 
     // ============================================
+    // GLOWING ORBS (hovering section markers)
+    // ============================================
+    const orbDefs = [
+      { name: 'about',    label: 'About Me',  color: 0xFFFF44, glowColor: new THREE.Color(1.0, 1.0, 0.27),  lat: 25,  lon: 45,  orbitSpeed: 0.15 },
+      { name: 'projects', label: 'Projects',  color: 0xBB44FF, glowColor: new THREE.Color(0.73, 0.27, 1.0), lat: 10,  lon: 130, orbitSpeed: 0.14 },
+      { name: 'github',   label: 'GitHub',    color: 0xFF3300, glowColor: new THREE.Color(1.0, 0.2, 0.0),   lat: -10, lon: 220, orbitSpeed: 0.12 },
+      { name: 'linkedin', label: 'LinkedIn',  color: 0x33BBFF, glowColor: new THREE.Color(0.2, 0.73, 1.0),  lat: -30, lon: 310, orbitSpeed: 0.18 },
+    ];
+
+    const orbGroup = new THREE.Group();
+    scene.add(orbGroup);
+    const orbs = [];
+    const orbHoverRadius = 1.72; // distance from planet center (just above atmosphere)
+
+    // Shared noise GLSL used by orb shaders
+    const orbNoiseGLSL = `
+      vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+      vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+      vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+      vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+      float snoise(vec3 v) {
+        const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+        const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+        vec3 i = floor(v + dot(v, C.yyy));
+        vec3 x0 = v - i + dot(i, C.xxx);
+        vec3 g = step(x0.yzx, x0.xyz);
+        vec3 l = 1.0 - g;
+        vec3 i1 = min(g.xyz, l.zxy);
+        vec3 i2 = max(g.xyz, l.zxy);
+        vec3 x1 = x0 - i1 + C.xxx;
+        vec3 x2 = x0 - i2 + C.yyy;
+        vec3 x3 = x0 - D.yyy;
+        i = mod289(i);
+        vec4 p = permute(permute(permute(
+          i.z + vec4(0.0, i1.z, i2.z, 1.0))
+          + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+          + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+        float n_ = 0.142857142857;
+        vec3 ns = n_ * D.wyz - D.xzx;
+        vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+        vec4 x_ = floor(j * ns.z);
+        vec4 y_ = floor(j - 7.0 * x_);
+        vec4 x = x_ * ns.x + ns.yyyy;
+        vec4 y = y_ * ns.x + ns.yyyy;
+        vec4 h = 1.0 - abs(x) - abs(y);
+        vec4 b0 = vec4(x.xy, y.xy);
+        vec4 b1 = vec4(x.zw, y.zw);
+        vec4 s0 = floor(b0) * 2.0 + 1.0;
+        vec4 s1 = floor(b1) * 2.0 + 1.0;
+        vec4 sh = -step(h, vec4(0.0));
+        vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+        vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+        vec3 p0 = vec3(a0.xy, h.x);
+        vec3 p1 = vec3(a0.zw, h.y);
+        vec3 p2 = vec3(a1.xy, h.z);
+        vec3 p3 = vec3(a1.zw, h.w);
+        vec4 norm = taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+        p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+        vec4 m = max(0.6 - vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)), 0.0);
+        m = m * m;
+        return 42.0 * dot(m*m, vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
+      }
+    `;
+
+    for (const def of orbDefs) {
+      // Core sphere (small, bright) with noise texture
+      const coreGeo = new THREE.SphereGeometry(0.08, 32, 32);
+      const coreMat = new THREE.ShaderMaterial({
+        uniforms: {
+          baseColor: { value: def.glowColor },
+          time: { value: 0.0 },
+        },
+        vertexShader: `
+          varying vec3 vPos;
+          varying vec3 vNormal;
+          void main() {
+            vPos = position;
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: orbNoiseGLSL + `
+          uniform vec3 baseColor;
+          uniform float time;
+          varying vec3 vPos;
+          varying vec3 vNormal;
+          void main() {
+            float n = snoise(vPos * 12.0 + time * 0.8) * 0.3
+                    + snoise(vPos * 24.0 - time * 0.5) * 0.15;
+            vec3 col = baseColor + n * 0.35;
+            col = mix(col, vec3(1.0), 0.15);
+            gl_FragColor = vec4(col, 1.0);
+          }
+        `,
+        transparent: false,
+      });
+      const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+
+      // Inner glow sphere (medium, semi-transparent) with swirling wisps
+      const innerGlowGeo = new THREE.SphereGeometry(0.14, 32, 32);
+      const innerGlowMat = new THREE.ShaderMaterial({
+        uniforms: {
+          glowColor: { value: def.glowColor },
+          intensity: { value: 0.6 },
+          time: { value: 0.0 },
+        },
+        vertexShader: `
+          varying vec3 vNormal;
+          varying vec3 vPos;
+          void main() {
+            vNormal = normalize(normalMatrix * normal);
+            vPos = position;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: orbNoiseGLSL + `
+          uniform vec3 glowColor;
+          uniform float intensity;
+          uniform float time;
+          varying vec3 vNormal;
+          varying vec3 vPos;
+          void main() {
+            float rim = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+            float n = snoise(vPos * 8.0 + time * 0.6) * 0.25
+                    + snoise(vPos * 16.0 - time * 0.4) * 0.12;
+            float alpha = intensity * (0.5 + rim) + n * 0.15;
+            vec3 col = glowColor + n * 0.2;
+            gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
+          }
+        `,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.FrontSide,
+      });
+      const innerGlowMesh = new THREE.Mesh(innerGlowGeo, innerGlowMat);
+
+      // Point light to cast orb color onto planet surface
+      const orbLight = new THREE.PointLight(def.color, 1.2, 2.5);
+      orbLight.position.set(0, 0, 0);
+
+      // Group all parts
+      const orbContainer = new THREE.Group();
+      orbContainer.add(coreMesh);
+      orbContainer.add(innerGlowMesh);
+      orbContainer.add(orbLight);
+      orbGroup.add(orbContainer);
+
+      // Convert lat/lon to initial 3D position
+      const latRad = (def.lat * Math.PI) / 180;
+      const lonRad = (def.lon * Math.PI) / 180;
+      const x = orbHoverRadius * Math.cos(latRad) * Math.sin(lonRad);
+      const y = orbHoverRadius * Math.sin(latRad);
+      const z = orbHoverRadius * Math.cos(latRad) * Math.cos(lonRad);
+      orbContainer.position.set(x, y, z);
+
+      orbs.push({
+        ...def,
+        mesh: orbContainer,
+        core: coreMesh,
+        innerGlow: innerGlowMesh,
+        light: orbLight,
+        baseLat: def.lat,
+        baseLon: def.lon,
+        hovered: false,
+      });
+    }
+
+    // ============================================
     // RAYCASTING & INTERACTION
     // ============================================
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     const tooltip = document.getElementById('tooltip');
 
-    // UV-based region mapping using exact blob geometry
-    // These match the texture drawing regions (in original 1024-base coords)
-    const regionDefs = [
-      { name: 'about', x: 120, y: 140, w: 180, h: 130, label: 'About Me' },
-      { name: 'github', x: 450, y: 100, w: 160, h: 120, label: 'GitHub' },
-      { name: 'linkedin', x: 700, y: 200, w: 170, h: 130, label: 'LinkedIn' },
-    ];
+    // Get the orb meshes for raycasting (use innerGlow for hit area)
+    const orbHitTargets = orbs.map(o => o.innerGlow);
 
-    // Generate blob boundary points for a region in UV space (0-1)
-    // Uses the same math as createPlanetTexture's getBlobPath
-    function getRegionBlobUV(region) {
-      const TEX_W = 1024; // original base resolution
-      const TEX_H = 512;
-      const cx = region.x + region.w / 2;
-      const cy = region.y + region.h / 2;
-      const numPoints = 48; // high point count for accurate hit testing
-      const scale = 1.0;
-      const pts = [];
-      for (let i = 0; i < numPoints; i++) {
-        const angle = (i / numPoints) * Math.PI * 2;
-        const rx = (region.w / 2) * scale * (0.75 + Math.sin(angle * 3 + region.x * 0.01) * 0.2 + Math.sin(angle * 5 + region.y * 0.01) * 0.08);
-        const ry = (region.h / 2) * scale * (0.75 + Math.cos(angle * 2 + region.y * 0.01) * 0.2 + Math.cos(angle * 4 + region.x * 0.01) * 0.08);
-        pts.push({
-          u: (cx + Math.cos(angle) * rx) / TEX_W,
-          v: (cy + Math.sin(angle) * ry) / TEX_H
-        });
-      }
-      return pts;
-    }
-
-    // Pre-compute blob boundaries for each region
-    const regionMap = regionDefs.map(r => ({
-      ...r,
-      blob: getRegionBlobUV(r)
-    }));
-
-    // Point-in-polygon test (ray casting algorithm)
-    function pointInBlob(u, v, blob) {
-      let inside = false;
-      for (let i = 0, j = blob.length - 1; i < blob.length; j = i++) {
-        const ui = blob[i].u, vi = blob[i].v;
-        const uj = blob[j].u, vj = blob[j].v;
-        if ((vi > v) !== (vj > v) && u < (uj - ui) * (v - vi) / (vj - vi) + ui) {
-          inside = !inside;
-        }
-      }
-      return inside;
-    }
-
-    function getRegionAtUV(u, v) {
-      // Three.js UV v=0 is bottom, canvas y=0 is top, so flip v
-      const vFlipped = 1.0 - v;
-      for (const region of regionMap) {
-        if (pointInBlob(u, vFlipped, region.blob)) {
-          return region;
-        }
-      }
-      return null;
-    }
-
-    let hoveredRegion = null;
+    let hoveredOrb = null;
     let isDragging = false;
     let previousMouse = { x: 0, y: 0 };
     let mouseDownOrigin = { x: 0, y: 0 };
     let rotationVelocity = { x: 0, y: 0 };
     let autoRotate = true;
     let activePanel = null;
+
+    function getHoveredOrb() {
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(orbHitTargets);
+      if (intersects.length > 0) {
+        // Find which orb this hit target belongs to
+        const hitMesh = intersects[0].object;
+        return orbs.find(o => o.innerGlow === hitMesh) || null;
+      }
+      return null;
+    }
 
     function onMouseMove(event) {
       const rect = renderer.domElement.getBoundingClientRect();
@@ -1126,29 +1189,21 @@
         previousMouse = { x: event.clientX, y: event.clientY };
       }
 
-      // Raycast
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(planet);
-      
-      if (intersects.length > 0 && !activePanel) {
-        const uv = intersects[0].uv;
-        const region = getRegionAtUV(uv.x, uv.y);
-        
-        if (region) {
-          hoveredRegion = region;
-          tooltip.textContent = region.label;
+      if (!activePanel) {
+        const orb = getHoveredOrb();
+        if (orb) {
+          hoveredOrb = orb;
+          // Mark hover state
+          orbs.forEach(o => o.hovered = false);
+          orb.hovered = true;
+          tooltip.textContent = orb.label;
           tooltip.classList.add('visible');
           tooltip.style.left = event.clientX + 15 + 'px';
           tooltip.style.top = event.clientY - 30 + 'px';
           renderer.domElement.style.cursor = 'pointer';
         } else {
-          hoveredRegion = null;
-          tooltip.classList.remove('visible');
-          renderer.domElement.style.cursor = isDragging ? 'grabbing' : 'grab';
-        }
-      } else {
-        if (!activePanel) {
-          hoveredRegion = null;
+          hoveredOrb = null;
+          orbs.forEach(o => o.hovered = false);
           tooltip.classList.remove('visible');
           renderer.domElement.style.cursor = isDragging ? 'grabbing' : 'default';
         }
@@ -1167,8 +1222,8 @@
       isDragging = false;
       
       // Only treat as click if barely moved from the original press point
-      if (dragDistance < 5 && hoveredRegion && !activePanel) {
-        openPanel(hoveredRegion.name);
+      if (dragDistance < 5 && hoveredOrb && !activePanel) {
+        openPanel(hoveredOrb.name);
       }
       
       renderer.domElement.style.cursor = 'default';
@@ -1231,8 +1286,10 @@
 
     window.addEventListener('touchend', (e) => {
       isDragging = false;
-      if (hoveredRegion && !activePanel) {
-        openPanel(hoveredRegion.name);
+      // Check for orb under last touch position
+      const orb = getHoveredOrb();
+      if (orb && !activePanel) {
+        openPanel(orb.name);
       }
     });
 
@@ -1328,6 +1385,41 @@
       innerGlow.position.copy(planet.position);
       atmosphere.rotation.copy(planet.rotation);
       innerGlow.rotation.copy(planet.rotation);
+
+      // Orb group follows planet rotation and position
+      orbGroup.rotation.copy(planet.rotation);
+      orbGroup.position.copy(planet.position);
+
+      // Animate each orb (gentle bob + hover glow pulse)
+      for (const orb of orbs) {
+        // Gentle vertical bob unique to each orb
+        const bob = Math.sin(time * 1.2 + orb.baseLon * 0.05) * 0.03;
+        const latRad = (orb.baseLat * Math.PI) / 180;
+        const lonRad = (orb.baseLon * Math.PI) / 180;
+        const r = orbHoverRadius + bob;
+        orb.mesh.position.set(
+          r * Math.cos(latRad) * Math.sin(lonRad),
+          r * Math.sin(latRad),
+          r * Math.cos(latRad) * Math.cos(lonRad)
+        );
+
+        // Update time uniforms for noise textures
+        orb.core.material.uniforms.time.value = time;
+        orb.innerGlow.material.uniforms.time.value = time;
+
+        // Pulse glow intensity
+        const pulse = 0.5 + Math.sin(time * 2.0 + orb.baseLon * 0.1) * 0.15;
+        orb.innerGlow.material.uniforms.intensity.value = orb.hovered ? 1.0 : pulse;
+
+        // Match point light intensity to glow (brighter on hover)
+        orb.light.intensity = orb.hovered ? 2.5 : 1.2 * pulse;
+
+        // Scale up on hover
+        const targetScale = orb.hovered ? 1.5 : 1.0;
+        const currentScale = orb.mesh.scale.x;
+        const newScale = currentScale + (targetScale - currentScale) * 0.1;
+        orb.mesh.scale.setScalar(newScale);
+      }
 
       // Particles
       particles.rotation.y += 0.0003;
