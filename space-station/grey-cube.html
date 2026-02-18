@@ -517,7 +517,7 @@
 
   // --- Lighting ---
   // Overhead point light
-  const pointLight = new THREE.PointLight(0xffeedd, 1.4, 50, 1.5);
+  const pointLight = new THREE.PointLight(0xffeedd, 1.4, 20, 1.5);
   pointLight.position.set(0, ROOM_HEIGHT - 0.5, 0);
   pointLight.castShadow = true;
   pointLight.shadow.mapSize.set(1024, 1024);
@@ -531,7 +531,7 @@
   scene.add(bulb);
 
   // Dim ambient
-  scene.add(new THREE.AmbientLight(0x888899, 0.12));
+  scene.add(new THREE.AmbientLight(0x888899, 0.3));
 
   // Secondary fill light
   const fillLight = new THREE.PointLight(0xaabbcc, 0.15, 15);
@@ -542,15 +542,15 @@
   const deskY = 0.75;
   const deskThick = 0.06;
   const deskD = 0.95;          // depth (away from wall)
-  const deskMargin = 0.3;     // gap from side walls
+  const deskMargin = 1;     // gap from side walls
 
-  const deskMat = new THREE.MeshStandardMaterial({ color: 0x111114, roughness: 0.5, metalness: 0.35 });
-  const deskPanelMat = new THREE.MeshStandardMaterial({ color: 0x0e0e12, roughness: 0.45, metalness: 0.4 });
-  const deskLegMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.4, metalness: 0.5 });
+  const deskMat = new THREE.MeshStandardMaterial({ color: 0x3e1d00, roughness: 0.5, metalness: 0.35 });
+  const deskPanelMat = new THREE.MeshStandardMaterial({ color: 0x3e1d00, roughness: 0.45, metalness: 0.4 });
+  const deskLegMat = new THREE.MeshStandardMaterial({ color: 0x3e1d00, roughness: 0.4, metalness: 0.5 });
 
   // --- Back section (along z = -HALF, spans nearly wall to wall) ---
   const backDeskW = ROOM_SIZE - deskMargin * 2;
-  const backDeskZ = -HALF + deskD / 2;
+  const backDeskZ = -HALF + deskD / 1.5;
 
   // Desktop surface
   const backTop = new THREE.Mesh(new THREE.BoxGeometry(backDeskW, deskThick, deskD), deskMat);
@@ -558,24 +558,24 @@
   backTop.castShadow = true; backTop.receiveShadow = true;
   scene.add(backTop);
 
-  // Front panel
+  // Back panel (faces window / wall side)
   const backPanel = new THREE.Mesh(new THREE.BoxGeometry(backDeskW, deskY - 0.05, 0.04), deskPanelMat);
-  backPanel.position.set(0, deskY / 2, backDeskZ + deskD / 2);
+  backPanel.position.set(0, deskY / 2, backDeskZ - deskD / 2);
   backPanel.castShadow = true; backPanel.receiveShadow = true;
   scene.add(backPanel);
 
-  // Legs — 4 evenly spaced
+  // Legs — 2 at the ends (room-facing side)
   const backLegGeo = new THREE.BoxGeometry(0.06, deskY - 0.05, 0.06);
-  [-backDeskW / 2 + 0.15, -backDeskW / 6, backDeskW / 6, backDeskW / 2 - 0.15].forEach(x => {
+  [-backDeskW / 2 + 0.15, backDeskW / 2 - 0.15].forEach(x => {
     const leg = new THREE.Mesh(backLegGeo, deskLegMat);
-    leg.position.set(x, (deskY - 0.05) / 2, backDeskZ - deskD / 2 + 0.1);
+    leg.position.set(x, (deskY - 0.05) / 2, backDeskZ + deskD / 2 - 0.1);
     leg.castShadow = true; leg.receiveShadow = true;
     scene.add(leg);
   });
 
   // --- Left section (along x = -HALF, from back wall to z = 0 where window ends) ---
   const sideDeskLen = HALF - deskD / 2 - deskMargin;  // from back section edge to z = 0 minus margin
-  const sideDeskX = -HALF + deskD / 2;
+  const sideDeskX = -HALF + deskD / 1.5;
   const sideDeskZ = -HALF + deskD + sideDeskLen / 2;
 
   // Desktop surface
@@ -584,19 +584,14 @@
   sideTop.castShadow = true; sideTop.receiveShadow = true;
   scene.add(sideTop);
 
-  // Front panel (faces +X, toward room center)
+  // Side panel (faces wall / window side)
   const sidePanel = new THREE.Mesh(new THREE.BoxGeometry(0.04, deskY - 0.05, sideDeskLen), deskPanelMat);
-  sidePanel.position.set(sideDeskX + deskD / 2, deskY / 2, sideDeskZ);
+  sidePanel.position.set(sideDeskX - deskD / 2, deskY / 2, sideDeskZ);
   sidePanel.castShadow = true; sidePanel.receiveShadow = true;
   scene.add(sidePanel);
 
-  // End panel (caps the open end at z ~ 0)
-  const endPanel = new THREE.Mesh(new THREE.BoxGeometry(deskD, deskY - 0.05, 0.04), deskPanelMat);
-  endPanel.position.set(sideDeskX, deskY / 2, sideDeskZ + sideDeskLen / 2);
-  endPanel.castShadow = true; endPanel.receiveShadow = true;
-  scene.add(endPanel);
 
-  // Legs — 2 along the side section
+  // Legs — 2 along the side section (room-facing side)
   const sideLegGeo = new THREE.BoxGeometry(0.06, deskY - 0.05, 0.06);
   [sideDeskZ - sideDeskLen / 2 + 0.15, sideDeskZ + sideDeskLen / 2 - 0.15].forEach(z => {
     const leg = new THREE.Mesh(sideLegGeo, deskLegMat);
@@ -604,6 +599,305 @@
     leg.castShadow = true; leg.receiveShadow = true;
     scene.add(leg);
   });
+
+  // --- Monitor (center of back desk section, facing room) ---
+  const monX = 0, monZ = backDeskZ - deskD / 2 + 0.12;
+  const monSurfY = deskY + deskThick / 2;
+  const monW = 1.2, monH = 0.7;
+  const monGroup = new THREE.Group();
+
+  // Screen — canvas texture
+  const monCanvas = document.createElement('canvas');
+  monCanvas.width = 512; monCanvas.height = 384;
+  const mctx = monCanvas.getContext('2d');
+  mctx.fillStyle = '#0a0e14';
+  mctx.fillRect(0, 0, 512, 384);
+  // Scanlines
+  mctx.strokeStyle = 'rgba(40,120,180,0.07)';
+  for (let y = 0; y < 384; y += 3) {
+    mctx.beginPath(); mctx.moveTo(0, y); mctx.lineTo(512, y); mctx.stroke();
+  }
+  // Grid
+  mctx.strokeStyle = 'rgba(40,100,150,0.25)';
+  mctx.lineWidth = 1;
+  for (let x = 0; x <= 512; x += 51.2) {
+    mctx.beginPath(); mctx.moveTo(x, 0); mctx.lineTo(x, 384); mctx.stroke();
+  }
+  for (let y = 0; y <= 384; y += 48) {
+    mctx.beginPath(); mctx.moveTo(0, y); mctx.lineTo(512, y); mctx.stroke();
+  }
+  // Data trace
+  mctx.strokeStyle = 'rgba(60,180,255,0.7)';
+  mctx.lineWidth = 2;
+  mctx.beginPath();
+  for (let x = 0; x < 512; x += 4) {
+    const v = 192 + Math.sin(x * 0.03) * 80 + Math.sin(x * 0.08) * 30 + Math.cos(x * 0.01) * 50;
+    x === 0 ? mctx.moveTo(x, v) : mctx.lineTo(x, v);
+  }
+  mctx.stroke();
+  // Label
+  mctx.font = 'bold 28px monospace';
+  mctx.fillStyle = 'rgba(60,180,255,0.8)';
+  mctx.fillText('PRIMARY SYSTEMS', 20, 40);
+  // Border
+  mctx.strokeStyle = 'rgba(40,120,180,0.5)';
+  mctx.lineWidth = 3;
+  mctx.strokeRect(2, 2, 508, 380);
+
+  const monTex = new THREE.CanvasTexture(monCanvas);
+  const monScrMat = new THREE.MeshStandardMaterial({
+    map: monTex, emissiveMap: monTex,
+    emissive: new THREE.Color(0xffffff), emissiveIntensity: 0.4,
+    roughness: 0.3, metalness: 0.1,
+  });
+  const monScreen = new THREE.Mesh(new THREE.PlaneGeometry(monW, monH), monScrMat);
+  monScreen.position.set(0, monH / 2 + 0.02, 0);
+  monScreen.rotation.x = -0.12;
+  monGroup.add(monScreen);
+
+  // Bezel
+  const monBezelMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.3, metalness: 0.6 });
+  const bz = 0.04;
+  const mbt = new THREE.Mesh(new THREE.BoxGeometry(monW + bz * 2, bz, 0.04), monBezelMat);
+  mbt.position.set(0, monH / 2 + 0.02 + monH / 2 + bz / 2, 0); mbt.rotation.x = -0.12; monGroup.add(mbt);
+  const mbb = new THREE.Mesh(new THREE.BoxGeometry(monW + bz * 2, bz, 0.04), monBezelMat);
+  mbb.position.set(0, monH / 2 + 0.02 - monH / 2 - bz / 2, 0); mbb.rotation.x = -0.12; monGroup.add(mbb);
+  const mbl = new THREE.Mesh(new THREE.BoxGeometry(bz, monH + bz * 2, 0.04), monBezelMat);
+  mbl.position.set(-monW / 2 - bz / 2, monH / 2 + 0.02, 0); mbl.rotation.x = -0.12; monGroup.add(mbl);
+  const mbr = new THREE.Mesh(new THREE.BoxGeometry(bz, monH + bz * 2, 0.04), monBezelMat);
+  mbr.position.set(monW / 2 + bz / 2, monH / 2 + 0.02, 0); mbr.rotation.x = -0.12; monGroup.add(mbr);
+
+  // Stand
+  const monStandMat = new THREE.MeshStandardMaterial({ color: 0x222226, roughness: 0.4, metalness: 0.5 });
+  const monStand = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.15, 0.08), monStandMat);
+  monStand.position.set(0, 0.05, 0); monGroup.add(monStand);
+
+  // Base plate
+  const monBase = new THREE.Mesh(new THREE.BoxGeometry(monW * 0.35, 0.03, 0.15), monStandMat);
+  monBase.position.set(0, 0.015, 0.04); monGroup.add(monBase);
+
+  monGroup.position.set(monX, monSurfY, monZ);
+  monGroup.castShadow = true;
+  scene.add(monGroup);
+
+  // Monitor glow
+  const monGlow = new THREE.PointLight(0x3388bb, 0.3, 4);
+  monGlow.position.set(monX, monSurfY + monH / 2, monZ + 0.3);
+  scene.add(monGlow);
+
+  // --- Left Monitor (to the left of center monitor) ---
+  const lMonX = monX - monW - 0.15, lMonZ = monZ + 0.3;
+  const lMonW = 1.2, lMonH = 0.7;
+  const lMonGroup = new THREE.Group();
+
+  // Screen
+  const lMonCanvas = document.createElement('canvas');
+  lMonCanvas.width = 512; lMonCanvas.height = 384;
+  const lmctx = lMonCanvas.getContext('2d');
+  lmctx.fillStyle = '#100a0e';
+  lmctx.fillRect(0, 0, 512, 384);
+  lmctx.strokeStyle = 'rgba(180,40,120,0.07)';
+  for (let y = 0; y < 384; y += 3) {
+    lmctx.beginPath(); lmctx.moveTo(0, y); lmctx.lineTo(512, y); lmctx.stroke();
+  }
+  lmctx.strokeStyle = 'rgba(150,40,100,0.25)';
+  lmctx.lineWidth = 1;
+  for (let x = 0; x <= 512; x += 51.2) {
+    lmctx.beginPath(); lmctx.moveTo(x, 0); lmctx.lineTo(x, 384); lmctx.stroke();
+  }
+  for (let y = 0; y <= 384; y += 48) {
+    lmctx.beginPath(); lmctx.moveTo(0, y); lmctx.lineTo(512, y); lmctx.stroke();
+  }
+  lmctx.strokeStyle = 'rgba(255,60,180,0.7)';
+  lmctx.lineWidth = 2;
+  lmctx.beginPath();
+  for (let x = 0; x < 512; x += 4) {
+    const v = 192 + Math.cos(x * 0.04 + 1) * 70 + Math.sin(x * 0.07) * 35 + Math.sin(x * 0.015) * 45;
+    x === 0 ? lmctx.moveTo(x, v) : lmctx.lineTo(x, v);
+  }
+  lmctx.stroke();
+  lmctx.font = 'bold 28px monospace';
+  lmctx.fillStyle = 'rgba(255,60,180,0.8)';
+  lmctx.fillText('NAV TELEMETRY', 20, 40);
+  lmctx.strokeStyle = 'rgba(180,40,120,0.5)';
+  lmctx.lineWidth = 3;
+  lmctx.strokeRect(2, 2, 508, 380);
+
+  const lMonTex = new THREE.CanvasTexture(lMonCanvas);
+  const lMonScrMat = new THREE.MeshStandardMaterial({
+    map: lMonTex, emissiveMap: lMonTex,
+    emissive: new THREE.Color(0xffffff), emissiveIntensity: 0.4,
+    roughness: 0.3, metalness: 0.1,
+  });
+  const lMonScreen = new THREE.Mesh(new THREE.PlaneGeometry(lMonW, lMonH), lMonScrMat);
+  lMonScreen.position.set(0, lMonH / 2 + 0.02, 0);
+  lMonScreen.rotation.x = -0.12;
+  lMonGroup.add(lMonScreen);
+
+  // Bezel
+  const lBz = 0.04;
+  const lbt = new THREE.Mesh(new THREE.BoxGeometry(lMonW + lBz * 2, lBz, 0.04), monBezelMat);
+  lbt.position.set(0, lMonH / 2 + 0.02 + lMonH / 2 + lBz / 2, 0); lbt.rotation.x = -0.12; lMonGroup.add(lbt);
+  const lbb = new THREE.Mesh(new THREE.BoxGeometry(lMonW + lBz * 2, lBz, 0.04), monBezelMat);
+  lbb.position.set(0, lMonH / 2 + 0.02 - lMonH / 2 - lBz / 2, 0); lbb.rotation.x = -0.12; lMonGroup.add(lbb);
+  const lbl = new THREE.Mesh(new THREE.BoxGeometry(lBz, lMonH + lBz * 2, 0.04), monBezelMat);
+  lbl.position.set(-lMonW / 2 - lBz / 2, lMonH / 2 + 0.02, 0); lbl.rotation.x = -0.12; lMonGroup.add(lbl);
+  const lbr = new THREE.Mesh(new THREE.BoxGeometry(lBz, lMonH + lBz * 2, 0.04), monBezelMat);
+  lbr.position.set(lMonW / 2 + lBz / 2, lMonH / 2 + 0.02, 0); lbr.rotation.x = -0.12; lMonGroup.add(lbr);
+
+  // Stand
+  const lMonStand = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.15, 0.08), monStandMat);
+  lMonStand.position.set(0, 0.05, 0); lMonGroup.add(lMonStand);
+
+  // Base plate
+  const lMonBase = new THREE.Mesh(new THREE.BoxGeometry(lMonW * 0.35, 0.03, 0.15), monStandMat);
+  lMonBase.position.set(0, 0.015, 0.04); lMonGroup.add(lMonBase);
+
+  lMonGroup.position.set(lMonX, monSurfY, lMonZ);
+  lMonGroup.rotation.y = 0.4;
+  lMonGroup.castShadow = true;
+  scene.add(lMonGroup);
+
+  // Left monitor glow
+  const lMonGlow = new THREE.PointLight(0xbb3388, 0.2, 4);
+  lMonGlow.position.set(lMonX, monSurfY + lMonH / 2, lMonZ + 0.3);
+  scene.add(lMonGlow);
+
+  // --- Right Monitor (to the right of center monitor) ---
+  const rMonX = monX + monW + 0.15, rMonZ = monZ + 0.3;
+  const rMonW = 1.2, rMonH = 0.7;
+  const rMonGroup = new THREE.Group();
+
+  // Screen
+  const rMonCanvas = document.createElement('canvas');
+  rMonCanvas.width = 512; rMonCanvas.height = 384;
+  const rmctx = rMonCanvas.getContext('2d');
+  rmctx.fillStyle = '#0a100e';
+  rmctx.fillRect(0, 0, 512, 384);
+  rmctx.strokeStyle = 'rgba(40,180,80,0.07)';
+  for (let y = 0; y < 384; y += 3) {
+    rmctx.beginPath(); rmctx.moveTo(0, y); rmctx.lineTo(512, y); rmctx.stroke();
+  }
+  rmctx.strokeStyle = 'rgba(40,150,80,0.25)';
+  rmctx.lineWidth = 1;
+  for (let x = 0; x <= 512; x += 51.2) {
+    rmctx.beginPath(); rmctx.moveTo(x, 0); rmctx.lineTo(x, 384); rmctx.stroke();
+  }
+  for (let y = 0; y <= 384; y += 48) {
+    rmctx.beginPath(); rmctx.moveTo(0, y); rmctx.lineTo(512, y); rmctx.stroke();
+  }
+  rmctx.strokeStyle = 'rgba(60,255,120,0.7)';
+  rmctx.lineWidth = 2;
+  rmctx.beginPath();
+  for (let x = 0; x < 512; x += 4) {
+    const v = 192 + Math.sin(x * 0.05 + 2) * 60 + Math.cos(x * 0.02) * 50 + Math.sin(x * 0.1) * 20;
+    x === 0 ? rmctx.moveTo(x, v) : rmctx.lineTo(x, v);
+  }
+  rmctx.stroke();
+  rmctx.font = 'bold 28px monospace';
+  rmctx.fillStyle = 'rgba(60,255,120,0.8)';
+  rmctx.fillText('COMMS / RADAR', 20, 40);
+  rmctx.strokeStyle = 'rgba(40,180,80,0.5)';
+  rmctx.lineWidth = 3;
+  rmctx.strokeRect(2, 2, 508, 380);
+
+  const rMonTex = new THREE.CanvasTexture(rMonCanvas);
+  const rMonScrMat = new THREE.MeshStandardMaterial({
+    map: rMonTex, emissiveMap: rMonTex,
+    emissive: new THREE.Color(0xffffff), emissiveIntensity: 0.4,
+    roughness: 0.3, metalness: 0.1,
+  });
+  const rMonScreen = new THREE.Mesh(new THREE.PlaneGeometry(rMonW, rMonH), rMonScrMat);
+  rMonScreen.position.set(0, rMonH / 2 + 0.02, 0);
+  rMonScreen.rotation.x = -0.12;
+  rMonGroup.add(rMonScreen);
+
+  // Bezel
+  const rBz = 0.04;
+  const rbt = new THREE.Mesh(new THREE.BoxGeometry(rMonW + rBz * 2, rBz, 0.04), monBezelMat);
+  rbt.position.set(0, rMonH / 2 + 0.02 + rMonH / 2 + rBz / 2, 0); rbt.rotation.x = -0.12; rMonGroup.add(rbt);
+  const rbb = new THREE.Mesh(new THREE.BoxGeometry(rMonW + rBz * 2, rBz, 0.04), monBezelMat);
+  rbb.position.set(0, rMonH / 2 + 0.02 - rMonH / 2 - rBz / 2, 0); rbb.rotation.x = -0.12; rMonGroup.add(rbb);
+  const rbl = new THREE.Mesh(new THREE.BoxGeometry(rBz, rMonH + rBz * 2, 0.04), monBezelMat);
+  rbl.position.set(-rMonW / 2 - rBz / 2, rMonH / 2 + 0.02, 0); rbl.rotation.x = -0.12; rMonGroup.add(rbl);
+  const rbr = new THREE.Mesh(new THREE.BoxGeometry(rBz, rMonH + rBz * 2, 0.04), monBezelMat);
+  rbr.position.set(rMonW / 2 + rBz / 2, rMonH / 2 + 0.02, 0); rbr.rotation.x = -0.12; rMonGroup.add(rbr);
+
+  // Stand
+  const rMonStand = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.15, 0.08), monStandMat);
+  rMonStand.position.set(0, 0.05, 0); rMonGroup.add(rMonStand);
+
+  // Base plate
+  const rMonBase = new THREE.Mesh(new THREE.BoxGeometry(rMonW * 0.35, 0.03, 0.15), monStandMat);
+  rMonBase.position.set(0, 0.015, 0.04); rMonGroup.add(rMonBase);
+
+  rMonGroup.position.set(rMonX, monSurfY, rMonZ);
+  rMonGroup.rotation.y = -0.4;
+  rMonGroup.castShadow = true;
+  scene.add(rMonGroup);
+
+  // Right monitor glow
+  const rMonGlow = new THREE.PointLight(0x33bb66, 0.2, 4);
+  rMonGlow.position.set(rMonX, monSurfY + rMonH / 2, rMonZ + 0.3);
+  scene.add(rMonGlow);
+
+  // --- Neon Orange Lamp (on the L-desk corner) ---
+  const dkLampX = sideDeskX, dkLampZ = sideDeskZ + sideDeskLen / 2 - 0.15;
+  const dkLampBaseY = deskY + deskThick / 2;
+
+  // Lamp base — small dark disc
+  const dkLampBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.07, 0.08, 0.025, 20),
+    new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.4, metalness: 0.5 })
+  );
+  dkLampBase.position.set(dkLampX, dkLampBaseY + 0.0125, dkLampZ);
+  dkLampBase.castShadow = true;
+  scene.add(dkLampBase);
+
+  // Lamp pole — thin brass stem
+  const dkPoleMat = new THREE.MeshStandardMaterial({ color: 0xAA8844, roughness: 0.35, metalness: 0.6 });
+  const dkLampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.25, 10), dkPoleMat);
+  dkLampPole.position.set(dkLampX, dkLampBaseY + 0.15, dkLampZ);
+  dkLampPole.castShadow = true;
+  scene.add(dkLampPole);
+
+  // Neon bulb
+  const dkBulbMat = new THREE.MeshStandardMaterial({
+    color: 0xFF6600,
+    emissive: 0xFF6600,
+    emissiveIntensity: 3.0,
+    roughness: 0.05,
+    metalness: 0.8,
+  });
+  const dkLampBulb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 24, 24), dkBulbMat);
+  dkLampBulb.position.set(dkLampX, dkLampBaseY + 0.34, dkLampZ);
+  scene.add(dkLampBulb);
+
+  // Neon glow layers
+  [
+    { radius: 0.10, color: 0xFFAA44, opacity: 0.4 },
+    { radius: 0.20, color: 0xFF6600, opacity: 0.2 },
+    { radius: 0.38, color: 0xFF5500, opacity: 0.09 },
+    { radius: 0.65, color: 0xFF4400, opacity: 0.035 },
+    { radius: 1.0,  color: 0xFF3300, opacity: 0.015 },
+  ].forEach(g => {
+    const mat = new THREE.MeshBasicMaterial({ color: g.color, transparent: true, opacity: g.opacity, depthWrite: false });
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(g.radius, 24, 24), mat);
+    mesh.position.set(dkLampX, dkLampBaseY + 0.34, dkLampZ);
+    scene.add(mesh);
+  });
+
+  // Primary neon point light
+  const dkOrangeLight = new THREE.PointLight(0xFF5500, 1.8, 10, 1.5);
+  dkOrangeLight.position.set(dkLampX, dkLampBaseY + 0.34, dkLampZ);
+  dkOrangeLight.castShadow = true;
+  dkOrangeLight.shadow.mapSize.set(512, 512);
+  scene.add(dkOrangeLight);
+
+  // Secondary fill
+  const dkOrangeFill = new THREE.PointLight(0xFF4400, 0.6, 16, 2);
+  dkOrangeFill.position.set(dkLampX, dkLampBaseY + 0.34, dkLampZ);
+  scene.add(dkOrangeFill);
 
   // --- Wooden Nightstand (front-right corner, opposite windows) ---
   const nsX = HALF - 0.45, nsZ = HALF - 0.45;

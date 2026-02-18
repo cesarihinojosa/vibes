@@ -1,3 +1,4 @@
 Room size - Room Geometry, lines 130
 desk depth - 544
 ceiling light - const pointLight = new THREE.PointLight(0xffeedd, 1.4, 20, 1.5); change second parmater
+rMonGroup.rotation.y = -0.25;
