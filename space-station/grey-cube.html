@@ -74,6 +74,59 @@
     top: 50%; left: 0;
     transform: translateY(-50%);
   }
+  #crosshair.hover-green::before, #crosshair.hover-green::after {
+    background: rgba(100,255,140,0.9);
+  }
+  #crosshair.hover-green {
+    width: 22px; height: 22px;
+    border: 1.5px solid rgba(100,255,140,0.7);
+    border-radius: 50%;
+  }
+  #crosshair.hover-blue::before, #crosshair.hover-blue::after {
+    background: rgba(60,180,255,0.9);
+  }
+  #crosshair.hover-blue {
+    width: 22px; height: 22px;
+    border: 1.5px solid rgba(60,180,255,0.7);
+    border-radius: 50%;
+  }
+  #crosshair.hover-pink::before, #crosshair.hover-pink::after {
+    background: rgba(255,80,180,0.9);
+  }
+  #crosshair.hover-pink {
+    width: 22px; height: 22px;
+    border: 1.5px solid rgba(255,80,180,0.7);
+    border-radius: 50%;
+  }
+
+  #about-modal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 420px;
+    background: rgba(13, 17, 23, 0.92);
+    border: 1px solid rgba(60, 180, 255, 0.35);
+    border-radius: 8px;
+    padding: 30px 35px;
+    z-index: 20;
+    font-family: 'Courier New', monospace;
+    color: rgba(180, 210, 240, 0.85);
+    font-size: 14px;
+    line-height: 1.7;
+    backdrop-filter: blur(8px);
+  }
+  #about-modal h2 {
+    margin: 0 0 16px 0;
+    font-size: 22px;
+    color: rgba(60, 180, 255, 0.9);
+  }
+  #about-modal .close-hint {
+    margin-top: 20px;
+    font-size: 11px;
+    color: rgba(60, 180, 255, 0.3);
+    text-align: center;
+  }
 
   #info {
     position: fixed;
@@ -94,16 +147,18 @@
 
 <div id="overlay">
   <div class="inner">
-    <h1>The Grey Room</h1>
-    <p>WASD / Arrow Keys — Move</p>
-    <p>Mouse — Look Around</p>
-    <p>Shift — Sprint</p>
-    <div class="click-hint">[ click to enter ]</div>
+    <div class="click-hint">[ click anywhere ]</div>
   </div>
 </div>
 
 <div id="crosshair"></div>
 <div id="info">ESC to release cursor</div>
+
+<div id="about-modal">
+  <h2>About Me</h2>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+  <div class="close-hint">[ click anywhere to close ]</div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -612,33 +667,16 @@
   const mctx = monCanvas.getContext('2d');
   mctx.fillStyle = '#0a0e14';
   mctx.fillRect(0, 0, 512, 384);
-  // Scanlines
-  mctx.strokeStyle = 'rgba(40,120,180,0.07)';
-  for (let y = 0; y < 384; y += 3) {
-    mctx.beginPath(); mctx.moveTo(0, y); mctx.lineTo(512, y); mctx.stroke();
-  }
-  // Grid
-  mctx.strokeStyle = 'rgba(40,100,150,0.25)';
-  mctx.lineWidth = 1;
-  for (let x = 0; x <= 512; x += 51.2) {
-    mctx.beginPath(); mctx.moveTo(x, 0); mctx.lineTo(x, 384); mctx.stroke();
-  }
-  for (let y = 0; y <= 384; y += 48) {
-    mctx.beginPath(); mctx.moveTo(0, y); mctx.lineTo(512, y); mctx.stroke();
-  }
-  // Data trace
-  mctx.strokeStyle = 'rgba(60,180,255,0.7)';
-  mctx.lineWidth = 2;
-  mctx.beginPath();
-  for (let x = 0; x < 512; x += 4) {
-    const v = 192 + Math.sin(x * 0.03) * 80 + Math.sin(x * 0.08) * 30 + Math.cos(x * 0.01) * 50;
-    x === 0 ? mctx.moveTo(x, v) : mctx.lineTo(x, v);
-  }
-  mctx.stroke();
   // Label
-  mctx.font = 'bold 28px monospace';
-  mctx.fillStyle = 'rgba(60,180,255,0.8)';
-  mctx.fillText('PRIMARY SYSTEMS', 20, 40);
+  mctx.font = 'bold 48px monospace';
+  mctx.fillStyle = 'rgba(60,180,255,0.9)';
+  mctx.textAlign = 'center';
+  mctx.fillText('About Me', 256, 120);
+  // Hint
+  mctx.font = '18px monospace';
+  mctx.fillStyle = 'rgba(60,180,255,0.35)';
+  mctx.fillText('[ click to read ]', 256, 170);
+  mctx.textAlign = 'left';
   // Border
   mctx.strokeStyle = 'rgba(40,120,180,0.5)';
   mctx.lineWidth = 3;
@@ -694,32 +732,30 @@
   const lMonCanvas = document.createElement('canvas');
   lMonCanvas.width = 512; lMonCanvas.height = 384;
   const lmctx = lMonCanvas.getContext('2d');
-  lmctx.fillStyle = '#100a0e';
+  // Background
+  lmctx.fillStyle = '#170a10';
   lmctx.fillRect(0, 0, 512, 384);
-  lmctx.strokeStyle = 'rgba(180,40,120,0.07)';
+  // Scanlines
+  lmctx.strokeStyle = 'rgba(255,80,180,0.04)';
   for (let y = 0; y < 384; y += 3) {
     lmctx.beginPath(); lmctx.moveTo(0, y); lmctx.lineTo(512, y); lmctx.stroke();
   }
-  lmctx.strokeStyle = 'rgba(150,40,100,0.25)';
-  lmctx.lineWidth = 1;
-  for (let x = 0; x <= 512; x += 51.2) {
-    lmctx.beginPath(); lmctx.moveTo(x, 0); lmctx.lineTo(x, 384); lmctx.stroke();
-  }
-  for (let y = 0; y <= 384; y += 48) {
-    lmctx.beginPath(); lmctx.moveTo(0, y); lmctx.lineTo(512, y); lmctx.stroke();
-  }
-  lmctx.strokeStyle = 'rgba(255,60,180,0.7)';
-  lmctx.lineWidth = 2;
-  lmctx.beginPath();
-  for (let x = 0; x < 512; x += 4) {
-    const v = 192 + Math.cos(x * 0.04 + 1) * 70 + Math.sin(x * 0.07) * 35 + Math.sin(x * 0.015) * 45;
-    x === 0 ? lmctx.moveTo(x, v) : lmctx.lineTo(x, v);
-  }
-  lmctx.stroke();
-  lmctx.font = 'bold 28px monospace';
-  lmctx.fillStyle = 'rgba(255,60,180,0.8)';
-  lmctx.fillText('NAV TELEMETRY', 20, 40);
-  lmctx.strokeStyle = 'rgba(180,40,120,0.5)';
+  // "LinkedIn" title
+  lmctx.font = 'bold 48px monospace';
+  lmctx.fillStyle = 'rgba(255,80,180,0.9)';
+  lmctx.textAlign = 'center';
+  lmctx.fillText('LinkedIn', 256, 120);
+  // Username
+  lmctx.font = '26px monospace';
+  lmctx.fillStyle = 'rgba(255,80,180,0.6)';
+  lmctx.fillText('cesar-hinojosa', 256, 165);
+  // Hint
+  lmctx.font = '18px monospace';
+  lmctx.fillStyle = 'rgba(255,80,180,0.35)';
+  lmctx.fillText('[ click to visit ]', 256, 210);
+  lmctx.textAlign = 'left';
+  // Border
+  lmctx.strokeStyle = 'rgba(255,80,180,0.4)';
   lmctx.lineWidth = 3;
   lmctx.strokeRect(2, 2, 508, 380);
 
@@ -759,7 +795,7 @@
   scene.add(lMonGroup);
 
   // Left monitor glow
-  const lMonGlow = new THREE.PointLight(0xbb3388, 0.2, 4);
+  const lMonGlow = new THREE.PointLight(0xff50b4, 0.2, 4);
   lMonGlow.position.set(lMonX, monSurfY + lMonH / 2, lMonZ + 0.3);
   scene.add(lMonGlow);
 
@@ -772,32 +808,30 @@
   const rMonCanvas = document.createElement('canvas');
   rMonCanvas.width = 512; rMonCanvas.height = 384;
   const rmctx = rMonCanvas.getContext('2d');
-  rmctx.fillStyle = '#0a100e';
+  // Background
+  rmctx.fillStyle = '#0d1117';
   rmctx.fillRect(0, 0, 512, 384);
-  rmctx.strokeStyle = 'rgba(40,180,80,0.07)';
+  // Scanlines
+  rmctx.strokeStyle = 'rgba(100,255,140,0.04)';
   for (let y = 0; y < 384; y += 3) {
     rmctx.beginPath(); rmctx.moveTo(0, y); rmctx.lineTo(512, y); rmctx.stroke();
   }
-  rmctx.strokeStyle = 'rgba(40,150,80,0.25)';
-  rmctx.lineWidth = 1;
-  for (let x = 0; x <= 512; x += 51.2) {
-    rmctx.beginPath(); rmctx.moveTo(x, 0); rmctx.lineTo(x, 384); rmctx.stroke();
-  }
-  for (let y = 0; y <= 384; y += 48) {
-    rmctx.beginPath(); rmctx.moveTo(0, y); rmctx.lineTo(512, y); rmctx.stroke();
-  }
-  rmctx.strokeStyle = 'rgba(60,255,120,0.7)';
-  rmctx.lineWidth = 2;
-  rmctx.beginPath();
-  for (let x = 0; x < 512; x += 4) {
-    const v = 192 + Math.sin(x * 0.05 + 2) * 60 + Math.cos(x * 0.02) * 50 + Math.sin(x * 0.1) * 20;
-    x === 0 ? rmctx.moveTo(x, v) : rmctx.lineTo(x, v);
-  }
-  rmctx.stroke();
-  rmctx.font = 'bold 28px monospace';
-  rmctx.fillStyle = 'rgba(60,255,120,0.8)';
-  rmctx.fillText('COMMS / RADAR', 20, 40);
-  rmctx.strokeStyle = 'rgba(40,180,80,0.5)';
+  // "GitHub" title
+  rmctx.font = 'bold 48px monospace';
+  rmctx.fillStyle = 'rgba(100,255,140,0.9)';
+  rmctx.textAlign = 'center';
+  rmctx.fillText('GitHub', 256, 120);
+  // Username
+  rmctx.font = '26px monospace';
+  rmctx.fillStyle = 'rgba(100,255,140,0.6)';
+  rmctx.fillText('@cesarihinojosa', 256, 165);
+  // Hint
+  rmctx.font = '18px monospace';
+  rmctx.fillStyle = 'rgba(100,255,140,0.35)';
+  rmctx.fillText('[ click to visit ]', 256, 210);
+  rmctx.textAlign = 'left';
+  // Border
+  rmctx.strokeStyle = 'rgba(100,255,140,0.4)';
   rmctx.lineWidth = 3;
   rmctx.strokeRect(2, 2, 508, 380);
 
@@ -898,6 +932,425 @@
   const dkOrangeFill = new THREE.PointLight(0xFF4400, 0.6, 16, 2);
   dkOrangeFill.position.set(dkLampX, dkLampBaseY + 0.34, dkLampZ);
   scene.add(dkOrangeFill);
+
+  // --- Bookshelf (right wall, solid front half) ---
+  const bsX = HALF - 0.18;     // flush against right wall
+  const bsW = 0.35;            // depth (into room)
+  const bsH = ROOM_HEIGHT - 0.5; // nearly floor to ceiling
+  const bsL = HALF - 0.8;      // length along the wall (z: 0.3 to HALF-0.5)
+  const bsZ = HALF / 2 + 0.15; // centered on solid section
+  const shelfCount = 5;
+  const shelfThick = 0.04;
+
+  const bsFrameMat = new THREE.MeshStandardMaterial({ color: 0x3B2314, roughness: 0.8, metalness: 0.05 });
+  const bsShelfMat = new THREE.MeshStandardMaterial({ color: 0x4A2E1A, roughness: 0.75, metalness: 0.05 });
+
+  // Back panel
+  const bsBack = new THREE.Mesh(new THREE.BoxGeometry(0.03, bsH, bsL), bsFrameMat);
+  bsBack.position.set(bsX, bsH / 2, bsZ);
+  bsBack.castShadow = true; bsBack.receiveShadow = true;
+  scene.add(bsBack);
+
+  // Side panels (top and bottom along Z)
+  [-1, 1].forEach(s => {
+    const side = new THREE.Mesh(new THREE.BoxGeometry(bsW, bsH, 0.04), bsFrameMat);
+    side.position.set(bsX - bsW / 2, bsH / 2, bsZ + s * (bsL / 2));
+    side.castShadow = true; side.receiveShadow = true;
+    scene.add(side);
+  });
+
+  // Top panel
+  const bsTop = new THREE.Mesh(new THREE.BoxGeometry(bsW, shelfThick, bsL), bsFrameMat);
+  bsTop.position.set(bsX - bsW / 2, bsH, bsZ);
+  bsTop.castShadow = true; bsTop.receiveShadow = true;
+  scene.add(bsTop);
+
+  // Shelves + books
+  const bookColors = [
+    0x8B1A1A, 0x1A3C8B, 0x2E6B2E, 0x8B6B1A, 0x6B1A6B,
+    0x1A6B6B, 0x8B4513, 0x2F4F4F, 0x800020, 0x1B4D3E,
+    0x4A3728, 0x2C3E50, 0x7B3F00, 0x3B0A30, 0x1C3A1C,
+  ];
+
+  for (let i = 0; i <= shelfCount; i++) {
+    const shelfY = (i / shelfCount) * (bsH - 0.1) + 0.05;
+
+    // Shelf plank
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(bsW, shelfThick, bsL), bsShelfMat);
+    shelf.position.set(bsX - bsW / 2, shelfY, bsZ);
+    shelf.castShadow = true; shelf.receiveShadow = true;
+    scene.add(shelf);
+
+    // Books on this shelf (skip the top shelf)
+    if (i < shelfCount) {
+      const slotH = (bsH - 0.1) / shelfCount - shelfThick;
+      let z = bsZ - bsL / 2 + 0.06;
+
+      while (z < bsZ + bsL / 2 - 0.06) {
+        // Random gap / empty space
+        if (Math.random() < 0.12) {
+          z += 0.06 + Math.random() * 0.1;
+          continue;
+        }
+
+        // Occasionally lay a book flat (horizontal stack)
+        const layFlat = Math.random() < 0.1;
+
+        const bookW = 0.03 + Math.random() * 0.055;
+        const bookH = layFlat ? 0.03 + Math.random() * 0.02 : slotH * (0.45 + Math.random() * 0.52);
+        const bookD = bsW * (0.5 + Math.random() * 0.45);
+        const colorIdx = Math.floor(Math.random() * bookColors.length);
+        const bookMat = new THREE.MeshStandardMaterial({
+          color: bookColors[colorIdx],
+          roughness: 0.7 + Math.random() * 0.25,
+          metalness: Math.random() * 0.05,
+        });
+        const book = new THREE.Mesh(new THREE.BoxGeometry(bookD, bookH, bookW), bookMat);
+
+        if (layFlat) {
+          // Stack 1-3 flat books
+          const stackCount = 1 + Math.floor(Math.random() * 3);
+          let stackY = shelfY + shelfThick / 2;
+          const stackZ = z + 0.05;
+          for (let s = 0; s < stackCount; s++) {
+            const fBookW = 0.08 + Math.random() * 0.06;
+            const fBookH = 0.02 + Math.random() * 0.015;
+            const fBookD = bsW * (0.55 + Math.random() * 0.35);
+            const fColorIdx = Math.floor(Math.random() * bookColors.length);
+            const fMat = new THREE.MeshStandardMaterial({
+              color: bookColors[fColorIdx],
+              roughness: 0.7 + Math.random() * 0.25,
+              metalness: Math.random() * 0.05,
+            });
+            const fBook = new THREE.Mesh(new THREE.BoxGeometry(fBookD, fBookH, fBookW), fMat);
+            fBook.position.set(
+              bsX - bsW / 2 + fBookD / 2 * (0.8 + Math.random() * 0.2),
+              stackY + fBookH / 2,
+              stackZ
+            );
+            fBook.rotation.y = (Math.random() - 0.5) * 0.15;
+            fBook.castShadow = true; fBook.receiveShadow = true;
+            scene.add(fBook);
+            stackY += fBookH;
+          }
+          z += 0.12 + Math.random() * 0.05;
+        } else {
+          book.position.set(
+            bsX - bsW / 2 + (bookD / 2) * (0.75 + Math.random() * 0.25),
+            shelfY + shelfThick / 2 + bookH / 2,
+            z + bookW / 2
+          );
+          // More varied tilt — some books lean noticeably
+          const tilt = Math.random();
+          if (tilt < 0.15) {
+            book.rotation.z = (Math.random() - 0.5) * 0.35;
+          } else if (tilt < 0.4) {
+            book.rotation.z = (Math.random() - 0.5) * 0.15;
+          } else {
+            book.rotation.z = (Math.random() - 0.5) * 0.04;
+          }
+          book.rotation.y = (Math.random() - 0.5) * 0.08;
+          book.castShadow = true; book.receiveShadow = true;
+          scene.add(book);
+          z += bookW + 0.003 + Math.random() * 0.015;
+        }
+      }
+    }
+  }
+
+  // --- Light Blue Couch (front wall, opposite main window) ---
+  // Helper: rounded rectangle shape for cushion extrusions
+  function roundedRectShape(w, h, r) {
+    const s = new THREE.Shape();
+    s.moveTo(-w / 2 + r, -h / 2);
+    s.lineTo(w / 2 - r, -h / 2);
+    s.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
+    s.lineTo(w / 2, h / 2 - r);
+    s.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+    s.lineTo(-w / 2 + r, h / 2);
+    s.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r);
+    s.lineTo(-w / 2, -h / 2 + r);
+    s.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+    return s;
+  }
+
+  const couchZ = HALF - 0.55;   // near front wall
+  const couchX = 0;             // centered
+  const couchSeatH = 0.33;      // seat height from floor
+
+  const couchFabric = new THREE.MeshStandardMaterial({ color: 0x7EB4D2, roughness: 0.92, metalness: 0.0 });
+  const couchFabricDark = new THREE.MeshStandardMaterial({ color: 0x6A9DBB, roughness: 0.92, metalness: 0.0 });
+  const couchLegMat = new THREE.MeshStandardMaterial({ color: 0x3B2314, roughness: 0.7, metalness: 0.1 });
+
+  const extrudeOpts = (depth) => ({
+    depth,
+    bevelEnabled: true,
+    bevelThickness: 0.03,
+    bevelSize: 0.03,
+    bevelSegments: 4,
+    curveSegments: 8,
+  });
+
+  // --- Base / frame (hidden, under cushions) ---
+  const baseShape = roundedRectShape(2.6, 0.85, 0.08);
+  const baseGeo = new THREE.ExtrudeGeometry(baseShape, extrudeOpts(0.12));
+  const base = new THREE.Mesh(baseGeo, couchFabricDark);
+  base.rotation.x = -Math.PI / 2;
+  base.position.set(couchX, 0.18, couchZ);
+  base.castShadow = true; base.receiveShadow = true;
+  scene.add(base);
+
+  // --- Seat cushions (3 side by side) ---
+  for (let ci = -1; ci <= 1; ci++) {
+    const cushShape = roundedRectShape(0.82, 0.75, 0.1);
+    const cushGeo = new THREE.ExtrudeGeometry(cushShape, extrudeOpts(0.14));
+    const cush = new THREE.Mesh(cushGeo, couchFabric);
+    cush.rotation.x = -Math.PI / 2;
+    cush.position.set(couchX + ci * 0.86, couchSeatH, couchZ);
+    cush.castShadow = true; cush.receiveShadow = true;
+    scene.add(cush);
+  }
+
+  // --- Back cushion (one long pillow, slightly tilted back) ---
+  const backShape = roundedRectShape(2.5, 1.0, 0.12);
+  const backGeo = new THREE.ExtrudeGeometry(backShape, extrudeOpts(0.16));
+  const backCush = new THREE.Mesh(backGeo, couchFabric);
+  backCush.rotation.x = 0;
+  backCush.position.set(couchX, couchSeatH + 0.22, couchZ + 0.3);
+  backCush.castShadow = true; backCush.receiveShadow = true;
+  scene.add(backCush);
+
+  // --- Small red throw pillow (left corner of couch) ---
+  const pillowMat = new THREE.MeshStandardMaterial({ color: 0xB83233, roughness: 0.92, metalness: 0.0 });
+  const pillowShape = roundedRectShape(0.32, 0.32, 0.1);
+  const pillowGeo = new THREE.ExtrudeGeometry(pillowShape, {
+    depth: 0.12,
+    bevelEnabled: true,
+    bevelThickness: 0.04,
+    bevelSize: 0.04,
+    bevelSegments: 6,
+    curveSegments: 10,
+  });
+  const pillow = new THREE.Mesh(pillowGeo, pillowMat);
+  pillow.position.set(couchX - 1.05, couchSeatH + 0.35, couchZ + 0.15);
+  pillow.rotation.x = 0.25;
+  pillow.rotation.y = 0.2;
+  pillow.rotation.z = 0.1;
+  pillow.castShadow = true; pillow.receiveShadow = true;
+  scene.add(pillow);
+
+  // --- Armrests (rounded cylinders with spherical caps) ---
+  [-1, 1].forEach(side => {
+    const armX = couchX + side * 1.4;
+
+    // Main arm body — rounded horizontal cylinder
+    const armGeo = new THREE.CylinderGeometry(0.16, 0.18, 0.8, 16, 1, false);
+    const arm = new THREE.Mesh(armGeo, couchFabricDark);
+    arm.rotation.z = Math.PI / 2;
+    arm.rotation.y = Math.PI / 2;
+    arm.position.set(armX, couchSeatH + 0.12, couchZ);
+    arm.castShadow = true; arm.receiveShadow = true;
+    scene.add(arm);
+
+    // Front cap — sphere for softness
+    const capGeo = new THREE.SphereGeometry(0.16, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+    const capFront = new THREE.Mesh(capGeo, couchFabricDark);
+    capFront.rotation.x = Math.PI / 2;
+    capFront.position.set(armX, couchSeatH + 0.12, couchZ - 0.4);
+    capFront.castShadow = true;
+    scene.add(capFront);
+
+    // Back cap
+    const capBack = new THREE.Mesh(capGeo, couchFabricDark);
+    capBack.rotation.x = -Math.PI / 2;
+    capBack.position.set(armX, couchSeatH + 0.12, couchZ + 0.4);
+    capBack.castShadow = true;
+    scene.add(capBack);
+
+    // Arm inner support (fills gap between arm and seat)
+    const supportShape = roundedRectShape(0.28, 0.75, 0.06);
+    const supportGeo = new THREE.ExtrudeGeometry(supportShape, extrudeOpts(couchSeatH - 0.05));
+    const support = new THREE.Mesh(supportGeo, couchFabricDark);
+    support.rotation.x = -Math.PI / 2;
+    support.position.set(armX, 0.05, couchZ);
+    support.castShadow = true; support.receiveShadow = true;
+    scene.add(support);
+  });
+
+  // --- Wooden legs (short, rounded) ---
+  const couchLegR = 0.04;
+  const couchLegH = 0.08;
+  [[-1.25, -0.32], [-1.25, 0.32], [1.25, -0.32], [1.25, 0.32]].forEach(([lx, lz]) => {
+    const cLegGeo = new THREE.CylinderGeometry(couchLegR, couchLegR * 1.2, couchLegH, 10);
+    const leg = new THREE.Mesh(cLegGeo, couchLegMat);
+    leg.position.set(couchX + lx, couchLegH / 2, couchZ + lz);
+    leg.castShadow = true;
+    scene.add(leg);
+  });
+
+  // --- Persian Maroon Rug (in front of couch) ---
+  const rugW = 4.0, rugD = 3.0;
+  const rugCanvas = document.createElement('canvas');
+  rugCanvas.width = 512; rugCanvas.height = 512;
+  const rctx = rugCanvas.getContext('2d');
+
+  // Base maroon
+  rctx.fillStyle = '#5C1A1A';
+  rctx.fillRect(0, 0, 512, 512);
+
+  // Outer border
+  rctx.strokeStyle = '#8B6B3E';
+  rctx.lineWidth = 18;
+  rctx.strokeRect(20, 20, 472, 472);
+  rctx.strokeStyle = '#3B0E0E';
+  rctx.lineWidth = 6;
+  rctx.strokeRect(36, 36, 440, 440);
+  rctx.strokeStyle = '#8B6B3E';
+  rctx.lineWidth = 3;
+  rctx.strokeRect(44, 44, 424, 424);
+
+  // Inner field — slightly different maroon
+  rctx.fillStyle = '#4E1616';
+  rctx.fillRect(52, 52, 408, 408);
+
+  // Central medallion
+  rctx.save();
+  rctx.translate(256, 256);
+  // Outer diamond
+  rctx.fillStyle = '#7A2E2E';
+  rctx.beginPath();
+  rctx.moveTo(0, -100); rctx.lineTo(80, 0); rctx.lineTo(0, 100); rctx.lineTo(-80, 0);
+  rctx.closePath();
+  rctx.fill();
+  rctx.strokeStyle = '#8B6B3E';
+  rctx.lineWidth = 2;
+  rctx.stroke();
+  // Inner diamond
+  rctx.fillStyle = '#3B0E0E';
+  rctx.beginPath();
+  rctx.moveTo(0, -60); rctx.lineTo(48, 0); rctx.lineTo(0, 60); rctx.lineTo(-48, 0);
+  rctx.closePath();
+  rctx.fill();
+  rctx.strokeStyle = '#A8844A';
+  rctx.lineWidth = 1.5;
+  rctx.stroke();
+  // Center motif
+  rctx.fillStyle = '#8B6B3E';
+  rctx.beginPath();
+  rctx.arc(0, 0, 12, 0, Math.PI * 2);
+  rctx.fill();
+  rctx.restore();
+
+  // Corner motifs
+  [[90, 90], [422, 90], [90, 422], [422, 422]].forEach(([cx, cy]) => {
+    rctx.save();
+    rctx.translate(cx, cy);
+    rctx.fillStyle = '#7A2E2E';
+    rctx.beginPath();
+    rctx.moveTo(0, -35); rctx.lineTo(28, 0); rctx.lineTo(0, 35); rctx.lineTo(-28, 0);
+    rctx.closePath();
+    rctx.fill();
+    rctx.strokeStyle = '#8B6B3E';
+    rctx.lineWidth = 1.5;
+    rctx.stroke();
+    rctx.fillStyle = '#A8844A';
+    rctx.beginPath();
+    rctx.arc(0, 0, 6, 0, Math.PI * 2);
+    rctx.fill();
+    rctx.restore();
+  });
+
+  // Repeating border motifs along edges
+  for (let i = 0; i < 8; i++) {
+    const t = 76 + i * 50;
+    // Top/bottom
+    rctx.fillStyle = '#A8844A';
+    rctx.fillRect(t, 24, 8, 8);
+    rctx.fillRect(t, 480, 8, 8);
+    // Left/right
+    rctx.fillRect(24, t, 8, 8);
+    rctx.fillRect(480, t, 8, 8);
+  }
+
+  // Fuzzy noise overlay for texture
+  const imgData = rctx.getImageData(0, 0, 512, 512);
+  const d = imgData.data;
+  for (let p = 0; p < d.length; p += 4) {
+    const noise = (Math.random() - 0.5) * 30;
+    d[p] = Math.max(0, Math.min(255, d[p] + noise));
+    d[p + 1] = Math.max(0, Math.min(255, d[p + 1] + noise));
+    d[p + 2] = Math.max(0, Math.min(255, d[p + 2] + noise));
+  }
+  rctx.putImageData(imgData, 0, 0);
+
+  const rugTex = new THREE.CanvasTexture(rugCanvas);
+  const rugMat = new THREE.MeshStandardMaterial({
+    map: rugTex,
+    roughness: 1.0,
+    metalness: 0.0,
+    side: THREE.DoubleSide,
+  });
+
+  // Rug mesh — very thin box with subdivided top for fuzz displacement
+  const rugGeo = new THREE.PlaneGeometry(rugW, rugD, 80, 80);
+  // Displace vertices slightly for fuzzy surface
+  const rugPos = rugGeo.attributes.position;
+  for (let v = 0; v < rugPos.count; v++) {
+    rugPos.setZ(v, rugPos.getZ(v) + (Math.random() - 0.3) * 0.008);
+  }
+  rugPos.needsUpdate = true;
+  rugGeo.computeVertexNormals();
+
+  const rug = new THREE.Mesh(rugGeo, rugMat);
+  rug.rotation.x = -Math.PI / 2;
+  rug.position.set(couchX, 0.005, couchZ - 2.0);
+  rug.receiveShadow = true;
+  scene.add(rug);
+
+  // --- Rug side binding (raised edges along long sides) ---
+  const bindingMat = new THREE.MeshStandardMaterial({ color: 0x8B6B3E, roughness: 0.9, metalness: 0.0 });
+  const rugCX = couchX, rugCZ = couchZ - 2.0;
+  [-1, 1].forEach(side => {
+    const bindGeo = new THREE.CylinderGeometry(0.015, 0.015, rugW, 8);
+    const bind = new THREE.Mesh(bindGeo, bindingMat);
+    bind.rotation.z = Math.PI / 2;
+    bind.position.set(rugCX, 0.012, rugCZ + side * rugD / 2);
+    bind.receiveShadow = true;
+    scene.add(bind);
+  });
+  // Binding along short sides
+  [-1, 1].forEach(side => {
+    const bindGeo = new THREE.CylinderGeometry(0.015, 0.015, rugD, 8);
+    const bind = new THREE.Mesh(bindGeo, bindingMat);
+    bind.rotation.x = Math.PI / 2;
+    bind.position.set(rugCX + side * rugW / 2, 0.012, rugCZ);
+    bind.receiveShadow = true;
+    scene.add(bind);
+  });
+
+  // --- Rug fringe (short ends, along the Z-axis edges) ---
+  const fringeMat = new THREE.MeshStandardMaterial({ color: 0xC9B077, roughness: 1.0, metalness: 0.0 });
+  [-1, 1].forEach(side => {
+    const fringeZ = rugCZ + side * (rugD / 2 + 0.005);
+    const fringeCount = 60;
+    for (let f = 0; f < fringeCount; f++) {
+      const fx = rugCX - rugW / 2 + 0.04 + f * ((rugW - 0.08) / (fringeCount - 1));
+      const fLen = 0.06 + Math.random() * 0.04;
+      const fThick = 0.004 + Math.random() * 0.003;
+      const fGeo = new THREE.CylinderGeometry(fThick, fThick * 0.5, fLen, 4);
+      const strand = new THREE.Mesh(fGeo, fringeMat);
+      // Lay flat on the ground, pointing away from the rug
+      strand.rotation.x = side * (Math.PI / 2 + (Math.random() - 0.5) * 0.3);
+      strand.rotation.z = (Math.random() - 0.5) * 0.2;
+      strand.position.set(
+        fx + (Math.random() - 0.5) * 0.01,
+        0.005,
+        fringeZ + side * fLen / 2
+      );
+      strand.receiveShadow = true;
+      scene.add(strand);
+    }
+  });
 
   // --- Wooden Nightstand (front-right corner, opposite windows) ---
   const nsX = HALF - 0.45, nsZ = HALF - 0.45;
@@ -1035,6 +1488,35 @@
     info.style.display = locked ? 'block' : 'none';
   });
 
+  // --- Raycaster for interactive monitors ---
+  const raycaster = new THREE.Raycaster();
+  const screenCenter = new THREE.Vector2(0, 0);
+  let hoveringRight = false;
+  let hoveringCenter = false;
+  let hoveringLeft = false;
+  const aboutModal = document.getElementById('about-modal');
+  let aboutOpen = false;
+
+  document.addEventListener('click', () => {
+    if (aboutOpen) {
+      aboutModal.style.display = 'none';
+      aboutOpen = false;
+      renderer.domElement.requestPointerLock();
+      return;
+    }
+    if (locked && hoveringRight) {
+      window.open('https://github.com/cesarihinojosa', '_blank', "noopener,noreferrer");
+    }
+    if (locked && hoveringLeft) {
+      window.open('https://www.linkedin.com/in/cesar-hinojosa', '_blank', "noopener,noreferrer");
+    }
+    if (locked && hoveringCenter) {
+      document.exitPointerLock();
+      aboutModal.style.display = 'block';
+      aboutOpen = true;
+    }
+  });
+
   // Footstep audio context (subtle)
   let audioCtx;
   let lastStepTime = 0;
@@ -1099,6 +1581,18 @@
       camera.rotation.order = 'YXZ';
       camera.rotation.y = yaw;
       camera.rotation.x = pitch;
+
+      // Raycast for interactive monitors
+      raycaster.setFromCamera(screenCenter, camera);
+      const rHits = raycaster.intersectObjects(rMonGroup.children, true);
+      hoveringRight = rHits.length > 0 && rHits[0].distance < 3;
+      const cHits = raycaster.intersectObjects(monGroup.children, true);
+      hoveringCenter = cHits.length > 0 && cHits[0].distance < 3;
+      const lHits = raycaster.intersectObjects(lMonGroup.children, true);
+      hoveringLeft = lHits.length > 0 && lHits[0].distance < 3;
+      crosshair.classList.toggle('hover-green', hoveringRight);
+      crosshair.classList.toggle('hover-pink', hoveringLeft);
+      crosshair.classList.toggle('hover-blue', hoveringCenter);
     }
 
     // Subtle light flicker
