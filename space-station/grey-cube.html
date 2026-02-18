@@ -126,9 +126,9 @@
   document.body.appendChild(renderer.domElement);
 
   // --- Room Geometry ---
-  const ROOM_SIZE = 12;
+  const ROOM_SIZE = 8;
   const HALF = ROOM_SIZE / 2;
-  const ROOM_HEIGHT = 6;
+  const ROOM_HEIGHT = 4;
   const HALF_H = ROOM_HEIGHT / 2;
 
   // Textured materials for the walls/floor/ceiling
@@ -517,7 +517,7 @@
 
   // --- Lighting ---
   // Overhead point light
-  const pointLight = new THREE.PointLight(0xffeedd, 0.6, 20, 1.5);
+  const pointLight = new THREE.PointLight(0xffeedd, 1.4, 50, 1.5);
   pointLight.position.set(0, ROOM_HEIGHT - 0.5, 0);
   pointLight.castShadow = true;
   pointLight.shadow.mapSize.set(1024, 1024);
@@ -538,489 +538,166 @@
   fillLight.position.set(-3, 1, 3);
   scene.add(fillLight);
 
-  // --- Command Center / Cockpit Furniture ---
-  const deskZ = -HALF + 1.8; // distance from window wall
-  const deskY = 0.75;        // desk surface height
-  const deskW = 10;           // total desk width
-  const deskD = 1.2;          // desk depth
-  const deskThick = 0.08;
+  // --- L-Shape Desk (along back window wall + left side window wall) ---
+  const deskY = 0.75;
+  const deskThick = 0.06;
+  const deskD = 0.95;          // depth (away from wall)
+  const deskMargin = 0.3;     // gap from side walls
 
-  // --- Main Console Desk ---
-  // Desktop surface — dark composite
-  const deskMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.6, metalness: 0.3 });
-  const deskTop = new THREE.Mesh(new THREE.BoxGeometry(deskW, deskThick, deskD), deskMat);
-  deskTop.position.set(0, deskY, deskZ);
-  deskTop.castShadow = true; deskTop.receiveShadow = true;
-  scene.add(deskTop);
+  const deskMat = new THREE.MeshStandardMaterial({ color: 0x111114, roughness: 0.5, metalness: 0.35 });
+  const deskPanelMat = new THREE.MeshStandardMaterial({ color: 0x0e0e12, roughness: 0.45, metalness: 0.4 });
+  const deskLegMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.4, metalness: 0.5 });
 
-  // Front panel (angled fascia below the desk edge, facing the player)
-  const panelMat = new THREE.MeshStandardMaterial({ color: 0x222228, roughness: 0.5, metalness: 0.4 });
-  const frontPanel = new THREE.Mesh(new THREE.BoxGeometry(deskW, deskY - 0.05, 0.06), panelMat);
-  frontPanel.position.set(0, deskY / 2, deskZ + deskD / 2);
-  frontPanel.castShadow = true; frontPanel.receiveShadow = true;
-  scene.add(frontPanel);
+  // --- Back section (along z = -HALF, spans nearly wall to wall) ---
+  const backDeskW = ROOM_SIZE - deskMargin * 2;
+  const backDeskZ = -HALF + deskD / 2;
 
-  // Desk legs / support pillars
-  const legMat = new THREE.MeshStandardMaterial({ color: 0x333338, roughness: 0.5, metalness: 0.5 });
-  const legGeo = new THREE.BoxGeometry(0.12, deskY - 0.05, deskD * 0.8);
-  [-deskW / 2 + 0.3, -deskW / 6, deskW / 6, deskW / 2 - 0.3].forEach(x => {
-    const leg = new THREE.Mesh(legGeo, legMat);
-    leg.position.set(x, (deskY - 0.05) / 2, deskZ);
+  // Desktop surface
+  const backTop = new THREE.Mesh(new THREE.BoxGeometry(backDeskW, deskThick, deskD), deskMat);
+  backTop.position.set(0, deskY, backDeskZ);
+  backTop.castShadow = true; backTop.receiveShadow = true;
+  scene.add(backTop);
+
+  // Front panel
+  const backPanel = new THREE.Mesh(new THREE.BoxGeometry(backDeskW, deskY - 0.05, 0.04), deskPanelMat);
+  backPanel.position.set(0, deskY / 2, backDeskZ + deskD / 2);
+  backPanel.castShadow = true; backPanel.receiveShadow = true;
+  scene.add(backPanel);
+
+  // Legs — 4 evenly spaced
+  const backLegGeo = new THREE.BoxGeometry(0.06, deskY - 0.05, 0.06);
+  [-backDeskW / 2 + 0.15, -backDeskW / 6, backDeskW / 6, backDeskW / 2 - 0.15].forEach(x => {
+    const leg = new THREE.Mesh(backLegGeo, deskLegMat);
+    leg.position.set(x, (deskY - 0.05) / 2, backDeskZ - deskD / 2 + 0.1);
     leg.castShadow = true; leg.receiveShadow = true;
     scene.add(leg);
   });
 
-  // Back lip / cable tray along rear edge of desk
-  const lipMat = new THREE.MeshStandardMaterial({ color: 0x1e1e22, roughness: 0.4, metalness: 0.5 });
-  const backLip = new THREE.Mesh(new THREE.BoxGeometry(deskW, 0.15, 0.1), lipMat);
-  backLip.position.set(0, deskY + 0.075, deskZ - deskD / 2);
-  scene.add(backLip);
+  // --- Left section (along x = -HALF, from back wall to z = 0 where window ends) ---
+  const sideDeskLen = HALF - deskD / 2 - deskMargin;  // from back section edge to z = 0 minus margin
+  const sideDeskX = -HALF + deskD / 2;
+  const sideDeskZ = -HALF + deskD + sideDeskLen / 2;
 
-  // --- Monitors ---
-  // Screen canvas helper — generates a glowing monitor texture
-  function makeScreenTex(width, height, hue, label) {
-    const c = document.createElement('canvas');
-    c.width = width; c.height = height;
-    const ctx = c.getContext('2d');
+  // Desktop surface
+  const sideTop = new THREE.Mesh(new THREE.BoxGeometry(deskD, deskThick, sideDeskLen), deskMat);
+  sideTop.position.set(sideDeskX, deskY, sideDeskZ);
+  sideTop.castShadow = true; sideTop.receiveShadow = true;
+  scene.add(sideTop);
 
-    // Background
-    ctx.fillStyle = `hsl(${hue}, 40%, 6%)`;
-    ctx.fillRect(0, 0, width, height);
+  // Front panel (faces +X, toward room center)
+  const sidePanel = new THREE.Mesh(new THREE.BoxGeometry(0.04, deskY - 0.05, sideDeskLen), deskPanelMat);
+  sidePanel.position.set(sideDeskX + deskD / 2, deskY / 2, sideDeskZ);
+  sidePanel.castShadow = true; sidePanel.receiveShadow = true;
+  scene.add(sidePanel);
 
-    // Scanlines
-    ctx.strokeStyle = `hsla(${hue}, 60%, 30%, 0.07)`;
-    for (let y = 0; y < height; y += 3) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
-    }
+  // End panel (caps the open end at z ~ 0)
+  const endPanel = new THREE.Mesh(new THREE.BoxGeometry(deskD, deskY - 0.05, 0.04), deskPanelMat);
+  endPanel.position.set(sideDeskX, deskY / 2, sideDeskZ + sideDeskLen / 2);
+  endPanel.castShadow = true; endPanel.receiveShadow = true;
+  scene.add(endPanel);
 
-    // Grid
-    ctx.strokeStyle = `hsla(${hue}, 50%, 25%, 0.25)`;
-    ctx.lineWidth = 1;
-    const gx = width / 10, gy = height / 8;
-    for (let x = 0; x <= width; x += gx) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
-    }
-    for (let y = 0; y <= height; y += gy) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
-    }
-
-    // Data visualization — varies by hue to look distinct
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = `hsla(${hue}, 70%, 50%, 0.7)`;
-    ctx.beginPath();
-    for (let x = 0; x < width; x += 4) {
-      const v = height / 2 + Math.sin(x * 0.03 + hue) * height * 0.2
-        + Math.sin(x * 0.08) * height * 0.1
-        + Math.cos(x * 0.01 + hue * 0.5) * height * 0.15;
-      x === 0 ? ctx.moveTo(x, v) : ctx.lineTo(x, v);
-    }
-    ctx.stroke();
-
-    // Secondary trace
-    ctx.strokeStyle = `hsla(${(hue + 120) % 360}, 60%, 45%, 0.4)`;
-    ctx.beginPath();
-    for (let x = 0; x < width; x += 4) {
-      const v = height * 0.65 + Math.cos(x * 0.05 + hue * 2) * height * 0.12
-        + Math.sin(x * 0.02) * height * 0.08;
-      x === 0 ? ctx.moveTo(x, v) : ctx.lineTo(x, v);
-    }
-    ctx.stroke();
-
-    // Some numeric readouts
-    ctx.font = `bold ${Math.floor(height / 12)}px monospace`;
-    ctx.fillStyle = `hsla(${hue}, 60%, 55%, 0.8)`;
-    ctx.fillText(label, width * 0.05, height * 0.12);
-
-    ctx.font = `${Math.floor(height / 16)}px monospace`;
-    ctx.fillStyle = `hsla(${hue}, 50%, 45%, 0.6)`;
-    const vals = ['ALT: 408.2km', 'VEL: 7.66km/s', 'INC: 51.64°', 'TEMP: -127°C',
-                  'PWR: 94.2%', 'O2: 99.8%', 'COMMS: NOMINAL', 'ORBIT: 92.4min'];
-    for (let i = 0; i < 3; i++) {
-      ctx.fillText(vals[(hue + i) % vals.length], width * 0.05, height * 0.82 + i * height / 14);
-    }
-
-    // Blinking dot
-    ctx.fillStyle = `hsla(${hue}, 80%, 55%, 0.9)`;
-    ctx.beginPath();
-    ctx.arc(width * 0.92, height * 0.08, height / 40, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Border glow
-    ctx.strokeStyle = `hsla(${hue}, 50%, 35%, 0.5)`;
-    ctx.lineWidth = 3;
-    ctx.strokeRect(2, 2, width - 4, height - 4);
-
-    return new THREE.CanvasTexture(c);
-  }
-
-  function addMonitor(x, screenW, screenH, tiltX, hue, label) {
-    const monitorGroup = new THREE.Group();
-
-    // Screen
-    const scrTex = makeScreenTex(512, 384, hue, label);
-    const scrMat = new THREE.MeshStandardMaterial({
-      map: scrTex,
-      emissiveMap: scrTex,
-      emissive: new THREE.Color(0xffffff),
-      emissiveIntensity: 0.4,
-      roughness: 0.3,
-      metalness: 0.1,
-    });
-    const screen = new THREE.Mesh(new THREE.PlaneGeometry(screenW, screenH), scrMat);
-    screen.position.set(0, screenH / 2 + 0.02, 0);
-    screen.rotation.x = tiltX;
-    monitorGroup.add(screen);
-
-    // Bezel frame around the screen
-    const bezelMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.3, metalness: 0.6 });
-    const bezelThick = 0.04;
-    // Top
-    const bt = new THREE.Mesh(new THREE.BoxGeometry(screenW + bezelThick * 2, bezelThick, 0.04), bezelMat);
-    bt.position.set(0, screenH / 2 + 0.02 + screenH / 2 + bezelThick / 2, 0);
-    bt.rotation.x = tiltX;
-    monitorGroup.add(bt);
-    // Bottom
-    const bb = new THREE.Mesh(new THREE.BoxGeometry(screenW + bezelThick * 2, bezelThick, 0.04), bezelMat);
-    bb.position.set(0, screenH / 2 + 0.02 - screenH / 2 - bezelThick / 2, 0);
-    bb.rotation.x = tiltX;
-    monitorGroup.add(bb);
-    // Left
-    const bl = new THREE.Mesh(new THREE.BoxGeometry(bezelThick, screenH + bezelThick * 2, 0.04), bezelMat);
-    bl.position.set(-screenW / 2 - bezelThick / 2, screenH / 2 + 0.02, 0);
-    bl.rotation.x = tiltX;
-    monitorGroup.add(bl);
-    // Right
-    const br = new THREE.Mesh(new THREE.BoxGeometry(bezelThick, screenH + bezelThick * 2, 0.04), bezelMat);
-    br.position.set(screenW / 2 + bezelThick / 2, screenH / 2 + 0.02, 0);
-    br.rotation.x = tiltX;
-    monitorGroup.add(br);
-
-    // Stand / neck connecting screen to desk
-    const standMat = new THREE.MeshStandardMaterial({ color: 0x222226, roughness: 0.4, metalness: 0.5 });
-    const stand = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.15, 0.08), standMat);
-    stand.position.set(0, 0.05, 0);
-    monitorGroup.add(stand);
-
-    // Base plate on desk surface
-    const basePlate = new THREE.Mesh(new THREE.BoxGeometry(screenW * 0.4, 0.03, 0.15), standMat);
-    basePlate.position.set(0, 0.015, 0.04);
-    monitorGroup.add(basePlate);
-
-    monitorGroup.position.set(x, deskY + deskThick / 2, deskZ - deskD / 2 + 0.2);
-    monitorGroup.castShadow = true;
-    scene.add(monitorGroup);
-
-    return monitorGroup;
-  }
-
-  // Main monitors — 3 large screens across the desk
-  addMonitor(-3.2, 2.4, 1.4, -0.15, 200, 'NAV TELEMETRY');
-  addMonitor(0,    2.8, 1.6, -0.12, 160, 'PRIMARY SYSTEMS');
-  addMonitor(3.2,  2.4, 1.4, -0.15, 30,  'COMMS / RADAR');
-
-  // Smaller secondary monitors on the sides
-  addMonitor(-4.6, 1.0, 0.7, -0.2, 280, 'LIFE SUPPORT');
-  addMonitor(4.6,  1.0, 0.7, -0.2, 100, 'PWR GRID');
-
-  // --- Keyboard / Control Panel areas on desk surface ---
-  const ctrlMat = new THREE.MeshStandardMaterial({ color: 0x1a1a20, roughness: 0.5, metalness: 0.4 });
-
-  // Main keyboard area (center)
-  const keyboard = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.03, 0.5), ctrlMat);
-  keyboard.position.set(0, deskY + deskThick / 2 + 0.015, deskZ + 0.15);
-  keyboard.castShadow = true;
-  scene.add(keyboard);
-
-  // Key rows (subtle bumps)
-  const keyMat = new THREE.MeshStandardMaterial({ color: 0x252530, roughness: 0.6, metalness: 0.3 });
-  for (let row = 0; row < 4; row++) {
-    for (let col = 0; col < 14; col++) {
-      const key = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.015, 0.09), keyMat);
-      key.position.set(
-        -0.75 + col * 0.115,
-        deskY + deskThick / 2 + 0.037,
-        deskZ + 0.35 - row * 0.115
-      );
-      scene.add(key);
-    }
-  }
-
-  // Side control pads (left and right of keyboard)
-  [-1.6, 1.6].forEach(x => {
-    const pad = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.03, 0.45), ctrlMat);
-    pad.position.set(x, deskY + deskThick / 2 + 0.015, deskZ + 0.15);
-    pad.castShadow = true;
-    scene.add(pad);
-
-    // Buttons / knobs on side panels
-    const btnMat = new THREE.MeshStandardMaterial({ color: 0x333340, roughness: 0.4, metalness: 0.5 });
-    for (let r = 0; r < 3; r++) {
-      for (let c = 0; c < 4; c++) {
-        const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.02, 12), btnMat);
-        btn.position.set(
-          x - 0.2 + c * 0.14,
-          deskY + deskThick / 2 + 0.04,
-          deskZ + 0.3 - r * 0.14
-        );
-        scene.add(btn);
-      }
-    }
+  // Legs — 2 along the side section
+  const sideLegGeo = new THREE.BoxGeometry(0.06, deskY - 0.05, 0.06);
+  [sideDeskZ - sideDeskLen / 2 + 0.15, sideDeskZ + sideDeskLen / 2 - 0.15].forEach(z => {
+    const leg = new THREE.Mesh(sideLegGeo, deskLegMat);
+    leg.position.set(sideDeskX + deskD / 2 - 0.1, (deskY - 0.05) / 2, z);
+    leg.castShadow = true; leg.receiveShadow = true;
+    scene.add(leg);
   });
 
-  // --- Status indicator lights on front panel ---
-  const statusColors = [0x44ff44, 0x44ff44, 0x44ff44, 0xffaa22, 0x44ff44, 
-                         0x44ff44, 0xff4444, 0x44ff44, 0x44ff44, 0x44ff44];
-  statusColors.forEach((col, i) => {
-    const light = new THREE.Mesh(
-      new THREE.CircleGeometry(0.03, 16),
-      new THREE.MeshBasicMaterial({ color: col })
+  // --- Wooden Nightstand (front-right corner, opposite windows) ---
+  const nsX = HALF - 0.45, nsZ = HALF - 0.45;
+  const nsW = 0.5, nsD = 0.5, nsH = 0.55;
+  const nsThick = 0.04;
+
+  // Wood material
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x8B5E3C, roughness: 0.75, metalness: 0.05 });
+  const woodDarkMat = new THREE.MeshStandardMaterial({ color: 0x6B4226, roughness: 0.8, metalness: 0.05 });
+
+  // Tabletop
+  const nsTop = new THREE.Mesh(new THREE.BoxGeometry(nsW, nsThick, nsD), woodMat);
+  nsTop.position.set(nsX, nsH, nsZ);
+  nsTop.castShadow = true; nsTop.receiveShadow = true;
+  scene.add(nsTop);
+
+  // Four legs
+  const legH = nsH - nsThick / 2;
+  const legThick = 0.05;
+  const legGeo = new THREE.BoxGeometry(legThick, legH, legThick);
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+    const leg = new THREE.Mesh(legGeo, woodDarkMat);
+    leg.position.set(
+      nsX + sx * (nsW / 2 - legThick / 2),
+      legH / 2,
+      nsZ + sz * (nsD / 2 - legThick / 2)
     );
-    light.position.set(-2.2 + i * 0.5, deskY * 0.55, deskZ + deskD / 2 + 0.031);
-    scene.add(light);
+    leg.castShadow = true; leg.receiveShadow = true;
+    scene.add(leg);
   });
 
-  // --- Chair (simple command chair behind the desk) ---
-  const chairMat = new THREE.MeshStandardMaterial({ color: 0x1e1e24, roughness: 0.6, metalness: 0.3 });
-  const chairBase = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, 0.08, 24), chairMat);
-  chairBase.position.set(0, 0.04, deskZ + 1.8);
-  chairBase.castShadow = true;
-  scene.add(chairBase);
+  // Bottom shelf
+  const shelfY = 0.12;
+  const nsShelf = new THREE.Mesh(new THREE.BoxGeometry(nsW - 0.06, nsThick * 0.7, nsD - 0.06), woodMat);
+  nsShelf.position.set(nsX, shelfY, nsZ);
+  nsShelf.castShadow = true; nsShelf.receiveShadow = true;
+  scene.add(nsShelf);
 
-  const chairPole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.35, 12), chairMat);
-  chairPole.position.set(0, 0.26, deskZ + 1.8);
-  scene.add(chairPole);
+  // --- Cozy Orange Lamp (on top of nightstand) ---
+  const lampBaseY = nsH + nsThick / 2;
 
-  const chairSeat = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.08, 0.5), chairMat);
-  chairSeat.position.set(0, 0.48, deskZ + 1.8);
-  chairSeat.castShadow = true;
-  scene.add(chairSeat);
-
-  const chairBackMat = new THREE.MeshStandardMaterial({ color: 0x1a1a22, roughness: 0.7, metalness: 0.2 });
-  const chairBack = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.08), chairBackMat);
-  chairBack.position.set(0, 0.87, deskZ + 2.03);
-  chairBack.castShadow = true;
-  scene.add(chairBack);
-
-  // Armrests
-  [-0.28, 0.28].forEach(x => {
-    const armrest = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 0.35), chairMat);
-    armrest.position.set(x, 0.62, deskZ + 1.8);
-    scene.add(armrest);
-    const armSupport = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.18, 0.06), chairMat);
-    armSupport.position.set(x, 0.53, deskZ + 1.97);
-    scene.add(armSupport);
-  });
-
-  // --- Hot Pink Neon Lamp (right side of main desk) ---
-  const lampX = 4.0, lampZ = deskZ + 0.3;
-  const lampBaseY = deskY + deskThick / 2;
-
-  // Base — flat cylinder
-  const lampBaseMat = new THREE.MeshStandardMaterial({ color: 0x222228, roughness: 0.3, metalness: 0.6 });
-  const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.04, 24), lampBaseMat);
-  lampBase.position.set(lampX, lampBaseY + 0.02, lampZ);
+  // Lamp base — small dark wood disc
+  const lampBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.07, 0.08, 0.025, 20),
+    woodDarkMat
+  );
+  lampBase.position.set(nsX, lampBaseY + 0.0125, nsZ);
   lampBase.castShadow = true;
   scene.add(lampBase);
 
-  // Pole — thin cylinder
-  const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.4, 12),
-    new THREE.MeshStandardMaterial({ color: 0x333338, roughness: 0.3, metalness: 0.7 }));
-  lampPole.position.set(lampX, lampBaseY + 0.24, lampZ);
+  // Lamp pole — thin brass-ish stem
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0xAA8844, roughness: 0.35, metalness: 0.6 });
+  const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.25, 10), poleMat);
+  lampPole.position.set(nsX, lampBaseY + 0.15, nsZ);
   lampPole.castShadow = true;
   scene.add(lampPole);
 
-  // Neon bulb — emissive with specular sheen like the monitor reflections
-  const neonBulbMat = new THREE.MeshStandardMaterial({
-    color: 0xff1493,
-    emissive: 0xff1493,
-    emissiveIntensity: 1.5,
-    roughness: 0.1,
+  // Neon bulb — hot emissive sphere (no shade)
+  const lampBulbMat = new THREE.MeshStandardMaterial({
+    color: 0xFF6600,
+    emissive: 0xFF6600,
+    emissiveIntensity: 3.0,
+    roughness: 0.05,
     metalness: 0.8,
   });
-  const lampBulb = new THREE.Mesh(new THREE.SphereGeometry(0.07, 24, 24), neonBulbMat);
-  lampBulb.position.set(lampX, lampBaseY + 0.5, lampZ);
+  const lampBulb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 24, 24), lampBulbMat);
+  lampBulb.position.set(nsX, lampBaseY + 0.34, nsZ);
   scene.add(lampBulb);
 
-  // Glow layers — stacked transparent spheres for intense neon bloom
-  const glowLayers = [
-    { radius: 0.12, color: 0xff80c0, opacity: 0.3 },
-    { radius: 0.22, color: 0xff1493, opacity: 0.15 },
-    { radius: 0.4,  color: 0xff1493, opacity: 0.06 },
-    { radius: 0.7,  color: 0xff0080, opacity: 0.025 },
-    { radius: 1.1,  color: 0xff0080, opacity: 0.012 },
-  ];
-  glowLayers.forEach(l => {
-    const mat = new THREE.MeshBasicMaterial({ color: l.color, transparent: true, opacity: l.opacity, depthWrite: false });
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(l.radius, 24, 24), mat);
-    mesh.position.set(lampX, lampBaseY + 0.5, lampZ);
+  // Neon glow layers — stacked transparent spheres for bloom
+  [
+    { radius: 0.10, color: 0xFFAA44, opacity: 0.4 },
+    { radius: 0.20, color: 0xFF6600, opacity: 0.2 },
+    { radius: 0.38, color: 0xFF5500, opacity: 0.09 },
+    { radius: 0.65, color: 0xFF4400, opacity: 0.035 },
+    { radius: 1.0,  color: 0xFF3300, opacity: 0.015 },
+  ].forEach(g => {
+    const mat = new THREE.MeshBasicMaterial({ color: g.color, transparent: true, opacity: g.opacity, depthWrite: false });
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(g.radius, 24, 24), mat);
+    mesh.position.set(nsX, lampBaseY + 0.34, nsZ);
     scene.add(mesh);
   });
 
-  // Primary pink point light — intense
-  const pinkLight = new THREE.PointLight(0xff1493, 1.25, 12, 1.5);
-  pinkLight.position.set(lampX, lampBaseY + 0.5, lampZ);
-  pinkLight.castShadow = true;
-  pinkLight.shadow.mapSize.set(512, 512);
-  scene.add(pinkLight);
+  // Primary neon point light — intense
+  const orangeLight = new THREE.PointLight(0xFF5500, 1.8, 10, 1.5);
+  orangeLight.position.set(nsX, lampBaseY + 0.34, nsZ);
+  orangeLight.castShadow = true;
+  orangeLight.shadow.mapSize.set(512, 512);
+  scene.add(orangeLight);
 
-  // Secondary fill — wider, softer pink wash
-  const pinkFill = new THREE.PointLight(0xff0080, 0.4, 18, 2);
-  pinkFill.position.set(lampX, lampBaseY + 0.5, lampZ);
-  scene.add(pinkFill);
-
-  // --- Ambient monitor glow — colored lights from front desk screens ---
-  const monGlow1 = new THREE.PointLight(0x3388bb, 0.3, 5);
-  monGlow1.position.set(0, deskY + 1.0, deskZ - 0.3);
-  scene.add(monGlow1);
-
-  const monGlow2 = new THREE.PointLight(0x33bb66, 0.15, 4);
-  monGlow2.position.set(-3, deskY + 0.8, deskZ - 0.2);
-  scene.add(monGlow2);
-
-  const monGlow3 = new THREE.PointLight(0xbb8833, 0.15, 4);
-  monGlow3.position.set(3, deskY + 0.8, deskZ - 0.2);
-  scene.add(monGlow3);
-
-  // --- Back Wall Desk (opposite the window, against front wall z = +HALF) ---
-  // Covers 2/3 of the wall width (8 units), shifted to the left side
-  const bDeskW = 8;
-  const bDeskD = 0.9;
-  const bDeskZ = HALF - 0.6;           // near the front wall
-  const bDeskX = -HALF + bDeskW / 2;   // left-aligned: center at -2
-
-  // Desktop surface
-  const bDeskTop = new THREE.Mesh(new THREE.BoxGeometry(bDeskW, deskThick, bDeskD), deskMat);
-  bDeskTop.position.set(bDeskX, deskY, bDeskZ);
-  bDeskTop.castShadow = true; bDeskTop.receiveShadow = true;
-  scene.add(bDeskTop);
-
-  // Front panel (faces inward toward room center, so -Z side)
-  const bFrontPanel = new THREE.Mesh(new THREE.BoxGeometry(bDeskW, deskY - 0.05, 0.06), panelMat);
-  bFrontPanel.position.set(bDeskX, deskY / 2, bDeskZ - bDeskD / 2);
-  bFrontPanel.castShadow = true; bFrontPanel.receiveShadow = true;
-  scene.add(bFrontPanel);
-
-  // Back panel (against the wall)
-  const bBackPanel = new THREE.Mesh(new THREE.BoxGeometry(bDeskW, deskY - 0.05, 0.04), panelMat);
-  bBackPanel.position.set(bDeskX, deskY / 2, bDeskZ + bDeskD / 2);
-  bBackPanel.castShadow = true; bBackPanel.receiveShadow = true;
-  scene.add(bBackPanel);
-
-  // Desk legs
-  const bLegGeo = new THREE.BoxGeometry(0.12, deskY - 0.05, bDeskD * 0.8);
-  [bDeskX - bDeskW / 2 + 0.3, bDeskX - bDeskW / 6, bDeskX + bDeskW / 6, bDeskX + bDeskW / 2 - 0.3].forEach(x => {
-    const leg = new THREE.Mesh(bLegGeo, legMat);
-    leg.position.set(x, (deskY - 0.05) / 2, bDeskZ);
-    leg.castShadow = true; leg.receiveShadow = true;
-    scene.add(leg);
-  });
-
-  // Back lip / cable tray along desk rear
-  const bBackLip = new THREE.Mesh(new THREE.BoxGeometry(bDeskW, 0.15, 0.1), lipMat);
-  bBackLip.position.set(bDeskX, deskY + 0.075, bDeskZ + bDeskD / 2);
-  scene.add(bBackLip);
-
-  // --- Back Desk Monitors (facing -Z, toward room center) ---
-  function addBackMonitor(x, screenW, screenH, tiltX, hue, label) {
-    const mg = new THREE.Group();
-
-    const scrTex = makeScreenTex(512, 384, hue, label);
-    const scrMat = new THREE.MeshStandardMaterial({
-      map: scrTex, emissiveMap: scrTex,
-      emissive: new THREE.Color(0xffffff), emissiveIntensity: 0.4,
-      roughness: 0.3, metalness: 0.1,
-    });
-    const screen = new THREE.Mesh(new THREE.PlaneGeometry(screenW, screenH), scrMat);
-    screen.position.set(0, screenH / 2 + 0.02, 0);
-    screen.rotation.x = tiltX;
-    mg.add(screen);
-
-    // Bezel
-    const bezelMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.3, metalness: 0.6 });
-    const bz = 0.04;
-    const bt = new THREE.Mesh(new THREE.BoxGeometry(screenW + bz * 2, bz, 0.04), bezelMat);
-    bt.position.set(0, screenH / 2 + 0.02 + screenH / 2 + bz / 2, 0); bt.rotation.x = tiltX; mg.add(bt);
-    const bb = new THREE.Mesh(new THREE.BoxGeometry(screenW + bz * 2, bz, 0.04), bezelMat);
-    bb.position.set(0, screenH / 2 + 0.02 - screenH / 2 - bz / 2, 0); bb.rotation.x = tiltX; mg.add(bb);
-    const bl = new THREE.Mesh(new THREE.BoxGeometry(bz, screenH + bz * 2, 0.04), bezelMat);
-    bl.position.set(-screenW / 2 - bz / 2, screenH / 2 + 0.02, 0); bl.rotation.x = tiltX; mg.add(bl);
-    const br = new THREE.Mesh(new THREE.BoxGeometry(bz, screenH + bz * 2, 0.04), bezelMat);
-    br.position.set(screenW / 2 + bz / 2, screenH / 2 + 0.02, 0); br.rotation.x = tiltX; mg.add(br);
-
-    // Stand
-    const standMat = new THREE.MeshStandardMaterial({ color: 0x222226, roughness: 0.4, metalness: 0.5 });
-    const stand = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.15, 0.08), standMat);
-    stand.position.set(0, 0.05, 0); mg.add(stand);
-    const basePlate = new THREE.Mesh(new THREE.BoxGeometry(screenW * 0.4, 0.03, 0.15), standMat);
-    basePlate.position.set(0, 0.015, -0.04); mg.add(basePlate);
-
-    // Position on back desk, rotated 180° to face inward
-    mg.position.set(x, deskY + deskThick / 2, bDeskZ + bDeskD / 2 - 0.2);
-    mg.rotation.set(0, Math.PI, 0);
-    mg.castShadow = true;
-    scene.add(mg);
-    return mg;
-  }
-
-  // 3 monitors on the back desk
-  addBackMonitor(bDeskX - 2.5, 2.0, 1.2, -0.15, 50,  'DIAGNOSTICS');
-  addBackMonitor(bDeskX,       2.2, 1.3, -0.12, 260, 'SENSOR ARRAY');
-  addBackMonitor(bDeskX + 2.5, 2.0, 1.2, -0.15, 340, 'LOG / ARCHIVE');
-
-  // --- Back Desk Keyboard + Controls ---
-  const bKb = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.03, 0.45), ctrlMat);
-  bKb.position.set(bDeskX, deskY + deskThick / 2 + 0.015, bDeskZ - 0.1);
-  bKb.castShadow = true;
-  scene.add(bKb);
-
-  // Key rows
-  for (let row = 0; row < 4; row++) {
-    for (let col = 0; col < 12; col++) {
-      const key = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.015, 0.085), keyMat);
-      key.position.set(
-        bDeskX - 0.65 + col * 0.115,
-        deskY + deskThick / 2 + 0.037,
-        bDeskZ - 0.3 + row * 0.11
-      );
-      scene.add(key);
-    }
-  }
-
-  // Side control pad (left side of back desk keyboard)
-  const bPad = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.03, 0.4), ctrlMat);
-  bPad.position.set(bDeskX - 1.5, deskY + deskThick / 2 + 0.015, bDeskZ - 0.1);
-  bPad.castShadow = true;
-  scene.add(bPad);
-
-  const bBtnMat = new THREE.MeshStandardMaterial({ color: 0x333340, roughness: 0.4, metalness: 0.5 });
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
-      const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.02, 12), bBtnMat);
-      btn.position.set(
-        bDeskX - 1.7 + c * 0.14,
-        deskY + deskThick / 2 + 0.04,
-        bDeskZ - 0.25 + r * 0.14
-      );
-      scene.add(btn);
-    }
-  }
-
-  // Status lights on back desk front panel
-  const bStatusColors = [0x44ff44, 0x44ff44, 0xffaa22, 0x44ff44, 0x44ff44, 0x44ff44];
-  bStatusColors.forEach((col, i) => {
-    const light = new THREE.Mesh(
-      new THREE.CircleGeometry(0.03, 16),
-      new THREE.MeshBasicMaterial({ color: col })
-    );
-    light.position.set(bDeskX - 1.5 + i * 0.6, deskY * 0.55, bDeskZ - bDeskD / 2 - 0.031);
-    light.rotation.set(0, Math.PI, 0);
-    scene.add(light);
-  });
-
-  // Back desk monitor glow
-  const bMonGlow = new THREE.PointLight(0x5544aa, 0.25, 5);
-  bMonGlow.position.set(bDeskX, deskY + 1.0, bDeskZ + 0.3);
-  scene.add(bMonGlow);
+  // Secondary fill — wider neon wash
+  const orangeFill = new THREE.PointLight(0xFF4400, 0.6, 16, 2);
+  orangeFill.position.set(nsX, lampBaseY + 0.34, nsZ);
+  scene.add(orangeFill);
 
   // --- Player Controls ---
   const keys = {};
