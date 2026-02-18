@@ -571,19 +571,7 @@
   });
 
   // --- Lighting ---
-  // Overhead point light
-  const pointLight = new THREE.PointLight(0xffeedd, 1.4, 20, 1.5);
-  pointLight.position.set(0, ROOM_HEIGHT - 0.5, 0);
-  pointLight.castShadow = true;
-  pointLight.shadow.mapSize.set(1024, 1024);
-  scene.add(pointLight);
 
-  // Light fixture visual
-  const bulbGeo = new THREE.SphereGeometry(0.15, 16, 16);
-  const bulbMat = new THREE.MeshBasicMaterial({ color: 0x998a70 });
-  const bulb = new THREE.Mesh(bulbGeo, bulbMat);
-  bulb.position.copy(pointLight.position);
-  scene.add(bulb);
 
   // Dim ambient
   scene.add(new THREE.AmbientLight(0x888899, 0.3));
@@ -592,6 +580,63 @@
   const fillLight = new THREE.PointLight(0xaabbcc, 0.15, 15);
   fillLight.position.set(-3, 1, 3);
   scene.add(fillLight);
+
+  // --- Neon Sign on Ceiling ("CESAR HINOJOSA") ---
+  const neonCanvas = document.createElement('canvas');
+  neonCanvas.width = 1024; neonCanvas.height = 256;
+  const nctx = neonCanvas.getContext('2d');
+
+  // Transparent background
+  nctx.clearRect(0, 0, 1024, 256);
+
+  // Glow layers (drawn first, behind the text)
+  const neonText = 'CESAR HINOJOSA';
+  nctx.textAlign = 'center';
+  nctx.textBaseline = 'middle';
+
+  // Outer glow
+  nctx.font = 'bold 90px Arial, Helvetica, sans-serif';
+  nctx.shadowColor = '#ffffff';
+  nctx.shadowBlur = 50;
+  nctx.fillStyle = 'rgba(255,255,255,0.3)';
+  nctx.fillText(neonText, 512, 128);
+  nctx.fillText(neonText, 512, 128);
+
+  // Mid glow
+  nctx.shadowBlur = 25;
+  nctx.fillStyle = 'rgba(255,255,255,0.5)';
+  nctx.fillText(neonText, 512, 128);
+
+  // Core text
+  nctx.shadowBlur = 10;
+  nctx.fillStyle = '#ffffff';
+  nctx.fillText(neonText, 512, 128);
+
+  const neonTex = new THREE.CanvasTexture(neonCanvas);
+  neonTex.minFilter = THREE.LinearFilter;
+
+  // Sign plane — emissive so it glows
+  const neonSignMat = new THREE.MeshBasicMaterial({
+    map: neonTex,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const neonSignW = 3.5, neonSignH = 0.85;
+  const neonSign = new THREE.Mesh(new THREE.PlaneGeometry(neonSignW, neonSignH), neonSignMat);
+  neonSign.rotation.x = Math.PI / 2;
+  neonSign.position.set(0, ROOM_HEIGHT - 0.02, -HALF + 0.5);
+  scene.add(neonSign);
+
+  // Neon glow light casting downward
+  const neonGlow = new THREE.PointLight(0xffffff, 0.6, 8, 2);
+  neonGlow.position.set(0, ROOM_HEIGHT - 0.1, -HALF + 0.5);
+  scene.add(neonGlow);
+
+  // Wider soft wash
+  const neonFill = new THREE.PointLight(0xeeeeff, 0.2, 12, 2);
+  neonFill.position.set(0, ROOM_HEIGHT - 0.1, -HALF + 0.5);
+  scene.add(neonFill);
 
   // --- L-Shape Desk (along back window wall + left side window wall) ---
   const deskY = 0.75;
@@ -932,6 +977,88 @@
   const dkOrangeFill = new THREE.PointLight(0xFF4400, 0.6, 16, 2);
   dkOrangeFill.position.set(dkLampX, dkLampBaseY + 0.34, dkLampZ);
   scene.add(dkOrangeFill);
+
+  // --- Keyboard (beige, in front of center monitor) ---
+  const kbW = 0.58, kbD = 0.21, kbH = 0.025;
+  const kbY = monSurfY + kbH / 2;
+  const kbZ = backDeskZ + 0.08;  // in front of monitor, toward user
+  const kbMat = new THREE.MeshStandardMaterial({ color: 0xf0e6d0, roughness: 0.6, metalness: 0.1 });
+  const kbBase = new THREE.Mesh(new THREE.BoxGeometry(kbW, kbH, kbD), kbMat);
+  kbBase.position.set(monX, kbY, kbZ);
+  kbBase.castShadow = true; kbBase.receiveShadow = true;
+  scene.add(kbBase);
+
+  // Slight tilt — raise back edge
+  kbBase.rotation.x = -0.06;
+
+  // Key rows
+  const keyMat = new THREE.MeshStandardMaterial({ color: 0xe8dcc4, roughness: 0.7, metalness: 0.05 });
+  const keyDarkMat = new THREE.MeshStandardMaterial({ color: 0xddd0b8, roughness: 0.7, metalness: 0.05 });
+  const keySize = 0.028;
+  const keyH = 0.01;
+  const keyGap = 0.005;
+  const keyCols = 14;
+  const keyRows = 5;
+  const kbStartX = -(keyCols * (keySize + keyGap)) / 2 + keySize / 2;
+  const kbStartZ = -(keyRows * (keySize + keyGap)) / 2 + keySize / 2;
+  const keyGeo = new THREE.BoxGeometry(keySize, keyH, keySize);
+  for (let r = 0; r < keyRows; r++) {
+    for (let c = 0; c < keyCols; c++) {
+      const km = (r + c) % 3 === 0 ? keyDarkMat : keyMat;
+      const key = new THREE.Mesh(keyGeo, km);
+      key.position.set(
+        kbStartX + c * (keySize + keyGap),
+        kbH / 2 + keyH / 2,
+        kbStartZ + r * (keySize + keyGap)
+      );
+      kbBase.add(key);
+    }
+  }
+  // Spacebar (bottom row, wider)
+  const spaceW = 0.16, spaceD = keySize;
+  const spaceBar = new THREE.Mesh(new THREE.BoxGeometry(spaceW, keyH, spaceD), keyDarkMat);
+  spaceBar.position.set(0, kbH / 2 + keyH / 2, kbStartZ + (keyRows) * (keySize + keyGap));
+  kbBase.add(spaceBar);
+
+  // --- Mouse (grey, to the right of keyboard) ---
+  const mouseX = monX + kbW / 2 + 0.14;
+  const mouseZ = kbZ + 0.02;
+  const mouseY = monSurfY;
+  const mouseMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.35, metalness: 0.2 });
+
+  // Mouse body — rounded via capsule-like shape
+  const mouseGroup = new THREE.Group();
+  mouseGroup.position.set(mouseX, mouseY, mouseZ);
+
+  const mouseBodyW = 0.06, mouseBodyD = 0.10, mouseBodyH = 0.028;
+  const mouseBody = new THREE.Mesh(new THREE.BoxGeometry(mouseBodyW, mouseBodyH, mouseBodyD), mouseMat);
+  mouseBody.position.y = mouseBodyH / 2;
+  mouseBody.castShadow = true; mouseBody.receiveShadow = true;
+  mouseGroup.add(mouseBody);
+
+  // Rounded top (half-sphere on top of body)
+  const mouseTop = new THREE.Mesh(
+    new THREE.SphereGeometry(0.030, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+    mouseMat
+  );
+  mouseTop.position.y = mouseBodyH;
+  mouseTop.scale.set(1, 0.6, 1.5);
+  mouseGroup.add(mouseTop);
+
+  // Scroll wheel
+  const scrollMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.3 });
+  const scrollWheel = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.016, 8), scrollMat);
+  scrollWheel.rotation.z = Math.PI / 2;
+  scrollWheel.position.set(0, mouseBodyH + 0.006, -0.016);
+  mouseGroup.add(scrollWheel);
+
+  // Button divider line
+  const dividerMat = new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.5, metalness: 0.2 });
+  const divider = new THREE.Mesh(new THREE.BoxGeometry(0.002, 0.004, 0.04), dividerMat);
+  divider.position.set(0, mouseBodyH + 0.007, -0.025);
+  mouseGroup.add(divider);
+
+  scene.add(mouseGroup);
 
   // --- Bookshelf (right wall, solid front half) ---
   const bsX = HALF - 0.18;     // flush against right wall
@@ -1477,7 +1604,9 @@
   const crosshair = document.getElementById('crosshair');
   const info = document.getElementById('info');
 
+  let enteredTime = null;
   overlay.addEventListener('click', () => {
+    if (!enteredTime) enteredTime = performance.now();
     renderer.domElement.requestPointerLock();
   });
 
@@ -1595,8 +1724,26 @@
       crosshair.classList.toggle('hover-blue', hoveringCenter);
     }
 
-    // Subtle light flicker
-    pointLight.intensity = 0.6 + Math.sin(clock.elapsedTime * 3) * 0.02;
+    // Neon sign flicker — dying neon effect, stops after 5s
+    const t = clock.elapsedTime;
+    const sinceEntry = enteredTime ? (performance.now() - enteredTime) / 1000 : 0;
+    let neonBrightness = 1.0;
+    if (!enteredTime || sinceEntry < 2) {
+      // Irregular flicker using layered sine waves at odd frequencies
+      const flick = Math.sin(t * 23.7) * Math.sin(t * 7.3) + Math.sin(t * 53.1) * 0.5;
+      if (flick > 0.7) {
+        neonBrightness = 0.05 + Math.random() * 0.1;
+      } else if (flick > 0.4) {
+        neonBrightness = 0.3 + Math.random() * 0.3;
+      } else if (Math.random() < 0.02) {
+        neonBrightness = 0.0;
+      } else if (Math.random() < 0.05) {
+        neonBrightness = 0.4 + Math.random() * 0.3;
+      }
+    }
+    neonSignMat.opacity = neonBrightness;
+    neonGlow.intensity = 0.6 * neonBrightness;
+    neonFill.intensity = 0.2 * neonBrightness;
 
     // --- Two-pass render: skybox first, then room on top ---
     // Pass 1: Render space skybox (rotation only — no position, so it's at infinity)
