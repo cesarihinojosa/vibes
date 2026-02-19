@@ -128,6 +128,43 @@
     text-align: center;
   }
 
+  #paper-modal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    background: rgba(245, 240, 230, 0.95);
+    border: 1px solid rgba(180, 160, 120, 0.5);
+    border-radius: 4px;
+    padding: 35px 40px;
+    z-index: 20;
+    font-family: 'Courier New', monospace;
+    color: rgba(40, 40, 35, 0.85);
+    font-size: 13px;
+    line-height: 1.8;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  #paper-modal h2 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    color: rgba(50, 50, 45, 0.9);
+    font-weight: bold;
+  }
+  #paper-modal .close-hint {
+    margin-top: 20px;
+    font-size: 11px;
+    color: rgba(140, 120, 80, 0.5);
+    text-align: center;
+  }
+
+  #crosshair.hover-paper {
+    width: 22px; height: 22px;
+    border: 1.5px solid rgba(210,190,140,0.8);
+    border-radius: 50%;
+  }
+
   #info {
     position: fixed;
     bottom: 20px; left: 50%;
@@ -153,6 +190,13 @@
 
 <div id="crosshair"></div>
 <div id="info">ESC to release cursor</div>
+
+<div id="paper-modal">
+  <h2>Notes</h2>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada. Nulla facilisi. Etiam non diam ante. Sed vehicula tortor sit amet nunc tristique mollis.</p>
+  <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Donec sed odio dui. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
+  <div class="close-hint">[ click anywhere to close ]</div>
+</div>
 
 <div id="about-modal">
   <h2>About Me</h2>
@@ -447,8 +491,8 @@
 
   // --- Window frame pieces (dark metal frame wrapping all 3 walls) ---
   const frameMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.4, metalness: 0.6 });
-  const frameDepth = 0.15;
-  const frameThick = 0.12;
+  const frameDepth = 0.05;
+  const frameThick = 0.08;
 
   // Back wall frames — horizontal bars
   function addBackFrameH(y) {
@@ -516,14 +560,134 @@
   addSideFrameV(HALF, -winMargin, Math.PI / 2);
   addSideFrameV(HALF, -HALF / 2, Math.PI / 2);
 
-  // Corner vertical posts where back wall meets side walls
-  const cornerPostGeo = new THREE.BoxGeometry(frameThick, winH + frameThick * 2, frameThick);
-  [-1, 1].forEach(sign => {
-    const post = new THREE.Mesh(cornerPostGeo, frameMat);
-    post.position.set(sign * (HALF - frameThick / 2), HALF_H, -HALF + frameThick / 2);
-    post.castShadow = true;
-    scene.add(post);
+
+
+  // --- Sheer open curtains on all windows ---
+  const curtainMat = new THREE.MeshStandardMaterial({
+    color: 0xd8d0c4, roughness: 0.9, metalness: 0.0,
+    side: THREE.DoubleSide, transparent: true, opacity: 0.45
   });
+
+  function makeCurtainGeo(cw, ch, folds) {
+    const geo = new THREE.PlaneGeometry(cw, ch, folds * 4, 12);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      // Wavy folds along X
+      const wave = Math.sin(x / cw * folds * Math.PI * 2) * 0.03;
+      // Gather toward edges (open curtain bunching)
+      const gatherX = Math.sign(x) * Math.pow(Math.abs(x / (cw / 2)), 0.6) * (cw / 2);
+      // Slight drape sag
+      const sag = (1 - Math.abs(y / (ch / 2))) * 0.015;
+      pos.setX(i, gatherX);
+      pos.setZ(i, wave + sag);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }
+
+  // Back wall curtains — one pair for the full window
+  const backCurtH = winH + 0.2;
+  const backCurtW = backWinW * 0.18; // each curtain panel width
+  const backCurtGeo = makeCurtainGeo(backCurtW, backCurtH, 6);
+
+  // Left curtain panel (bunched to left side of back window, outside frame)
+  const bcL = new THREE.Mesh(backCurtGeo, curtainMat);
+  bcL.position.set(-backWinW / 2 - frameThick / 2 - backCurtW / 2 * 0.3, HALF_H, -HALF + frameDepth + 0.03);
+  bcL.castShadow = true;
+  scene.add(bcL);
+
+  // Right curtain panel (bunched to right side of back window, outside frame)
+  const bcR = new THREE.Mesh(backCurtGeo, curtainMat);
+  bcR.position.set(backWinW / 2 + frameThick / 2 + backCurtW / 2 * 0.3, HALF_H, -HALF + frameDepth + 0.03);
+  bcR.castShadow = true;
+  scene.add(bcR);
+
+  // Side wall curtains — left wall (back half, z: -HALF to 0)
+  const sideCurtH = winH + 0.2;
+  const sideCurtW = sideWinW * 0.2;
+  const sideCurtGeo = makeCurtainGeo(sideCurtW, sideCurtH, 5);
+
+  // Left wall — curtain near back corner (just past the corner)
+  const scLBack = new THREE.Mesh(sideCurtGeo, curtainMat);
+  scLBack.position.set(-HALF + frameDepth + 0.03, HALF_H, -HALF + frameThick / 2 + sideCurtW / 2 * 0.3);
+  scLBack.rotation.y = Math.PI / 2;
+  scLBack.castShadow = true;
+  scene.add(scLBack);
+
+  // Left wall — curtain near front edge (outside the front frame divider)
+  const scLFront = new THREE.Mesh(sideCurtGeo, curtainMat);
+  scLFront.position.set(-HALF + frameDepth + 0.03, HALF_H, -winMargin + frameThick / 2 + sideCurtW / 2 * 0.3);
+  scLFront.rotation.y = Math.PI / 2;
+  scLFront.castShadow = true;
+  scene.add(scLFront);
+
+  // Right wall — curtain near back corner
+  const scRBack = new THREE.Mesh(sideCurtGeo, curtainMat);
+  scRBack.position.set(HALF - frameDepth - 0.03, HALF_H, -HALF + frameThick / 2 + sideCurtW / 2 * 0.3);
+  scRBack.rotation.y = -Math.PI / 2;
+  scRBack.castShadow = true;
+  scene.add(scRBack);
+
+  // Right wall — curtain near front edge
+  const scRFront = new THREE.Mesh(sideCurtGeo, curtainMat);
+  scRFront.position.set(HALF - frameDepth - 0.03, HALF_H, -winMargin + frameThick / 2 + sideCurtW / 2 * 0.3);
+  scRFront.rotation.y = -Math.PI / 2;
+  scRFront.castShadow = true;
+  scene.add(scRFront);
+
+  // --- Curtain rods ---
+  const rodMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.35, metalness: 0.7 });
+  const rodR = 0.012;
+  const rodY = ROOM_HEIGHT - winMargin + frameThick / 2 + 0.04;
+  const finialR = 0.022;
+
+  // Back wall rod — spans full window width plus overhang
+  const backRodLen = backWinW + frameThick * 2 + 0.3;
+  const backRod = new THREE.Mesh(new THREE.CylinderGeometry(rodR, rodR, backRodLen, 8), rodMat);
+  backRod.position.set(0, rodY, -HALF + frameDepth + 0.03);
+  backRod.rotation.z = Math.PI / 2;
+  backRod.castShadow = true;
+  scene.add(backRod);
+  // Finials
+  const backFinL = new THREE.Mesh(new THREE.SphereGeometry(finialR, 8, 8), rodMat);
+  backFinL.position.set(-backRodLen / 2, rodY, -HALF + frameDepth + 0.03);
+  scene.add(backFinL);
+  const backFinR = new THREE.Mesh(new THREE.SphereGeometry(finialR, 8, 8), rodMat);
+  backFinR.position.set(backRodLen / 2, rodY, -HALF + frameDepth + 0.03);
+  scene.add(backFinR);
+
+  // Left wall rod — spans the window section
+  const sideRodLen = sideWinW + frameThick + 0.2;
+  const sideRodZ = -HALF / 2;  // center of the side window area
+
+  const leftRod = new THREE.Mesh(new THREE.CylinderGeometry(rodR, rodR, sideRodLen, 8), rodMat);
+  leftRod.position.set(-HALF + frameDepth + 0.03, rodY, sideRodZ);
+  leftRod.rotation.x = Math.PI / 2;
+  leftRod.castShadow = true;
+  scene.add(leftRod);
+  // Finials
+  const lFinBack = new THREE.Mesh(new THREE.SphereGeometry(finialR, 8, 8), rodMat);
+  lFinBack.position.set(-HALF + frameDepth + 0.03, rodY, sideRodZ - sideRodLen / 2);
+  scene.add(lFinBack);
+  const lFinFront = new THREE.Mesh(new THREE.SphereGeometry(finialR, 8, 8), rodMat);
+  lFinFront.position.set(-HALF + frameDepth + 0.03, rodY, sideRodZ + sideRodLen / 2);
+  scene.add(lFinFront);
+
+  // Right wall rod
+  const rightRod = new THREE.Mesh(new THREE.CylinderGeometry(rodR, rodR, sideRodLen, 8), rodMat);
+  rightRod.position.set(HALF - frameDepth - 0.03, rodY, sideRodZ);
+  rightRod.rotation.x = Math.PI / 2;
+  rightRod.castShadow = true;
+  scene.add(rightRod);
+  // Finials
+  const rFinBack = new THREE.Mesh(new THREE.SphereGeometry(finialR, 8, 8), rodMat);
+  rFinBack.position.set(HALF - frameDepth - 0.03, rodY, sideRodZ - sideRodLen / 2);
+  scene.add(rFinBack);
+  const rFinFront = new THREE.Mesh(new THREE.SphereGeometry(finialR, 8, 8), rodMat);
+  rFinFront.position.set(HALF - frameDepth - 0.03, rodY, sideRodZ + sideRodLen / 2);
+  scene.add(rFinFront);
 
   // --- Window lighting ---
   // Blue light spill from the back window
@@ -1059,6 +1223,289 @@
   mouseGroup.add(divider);
 
   scene.add(mouseGroup);
+
+  // --- Code monitor on side desk (facing room, +X) ---
+  const codeMonW = 0.9, codeMonH = 0.55;
+  const codeMonGroup = new THREE.Group();
+
+  // Screen — canvas texture with code
+  const codeCanvas = document.createElement('canvas');
+  codeCanvas.width = 512; codeCanvas.height = 384;
+  const cctx = codeCanvas.getContext('2d');
+  cctx.fillStyle = '#1e1e2e';
+  cctx.fillRect(0, 0, 512, 384);
+
+  // Line numbers gutter
+  cctx.fillStyle = '#2a2a3a';
+  cctx.fillRect(0, 0, 36, 384);
+
+  const codeLines = [
+    { num: '1', tokens: [{ t: 'import ', c: '#c678dd' }, { t: 'React', c: '#e5c07b' }, { t: ' from ', c: '#c678dd' }, { t: "'react'", c: '#98c379' }] },
+    { num: '2', tokens: [{ t: 'import ', c: '#c678dd' }, { t: '{ useState }', c: '#e5c07b' }, { t: ' from ', c: '#c678dd' }, { t: "'react'", c: '#98c379' }] },
+    { num: '3', tokens: [] },
+    { num: '4', tokens: [{ t: 'const ', c: '#c678dd' }, { t: 'App', c: '#61afef' }, { t: ' = () => {', c: '#abb2bf' }] },
+    { num: '5', tokens: [{ t: '  const ', c: '#c678dd' }, { t: '[count, setCount]', c: '#e06c75' }, { t: ' = ', c: '#abb2bf' }, { t: 'useState', c: '#61afef' }, { t: '(0)', c: '#d19a66' }] },
+    { num: '6', tokens: [{ t: '  const ', c: '#c678dd' }, { t: '[name, setName]', c: '#e06c75' }, { t: ' = ', c: '#abb2bf' }, { t: 'useState', c: '#61afef' }, { t: "('')", c: '#98c379' }] },
+    { num: '7', tokens: [] },
+    { num: '8', tokens: [{ t: '  const ', c: '#c678dd' }, { t: 'handleClick', c: '#61afef' }, { t: ' = () => {', c: '#abb2bf' }] },
+    { num: '9', tokens: [{ t: '    setCount', c: '#61afef' }, { t: '(prev => prev + 1)', c: '#abb2bf' }] },
+    { num: '10', tokens: [{ t: '    console', c: '#e5c07b' }, { t: '.log', c: '#61afef' }, { t: '(', c: '#abb2bf' }, { t: "'clicked'", c: '#98c379' }, { t: ')', c: '#abb2bf' }] },
+    { num: '11', tokens: [{ t: '  }', c: '#abb2bf' }] },
+    { num: '12', tokens: [] },
+    { num: '13', tokens: [{ t: '  return ', c: '#c678dd' }, { t: '(', c: '#abb2bf' }] },
+    { num: '14', tokens: [{ t: '    <', c: '#abb2bf' }, { t: 'div', c: '#e06c75' }, { t: ' className=', c: '#d19a66' }, { t: '"app"', c: '#98c379' }, { t: '>', c: '#abb2bf' }] },
+    { num: '15', tokens: [{ t: '      <', c: '#abb2bf' }, { t: 'h1', c: '#e06c75' }, { t: '>{name}</', c: '#abb2bf' }, { t: 'h1', c: '#e06c75' }, { t: '>', c: '#abb2bf' }] },
+    { num: '16', tokens: [{ t: '      <', c: '#abb2bf' }, { t: 'button', c: '#e06c75' }, { t: ' onClick=', c: '#d19a66' }, { t: '{handleClick}', c: '#abb2bf' }, { t: '>', c: '#abb2bf' }] },
+    { num: '17', tokens: [{ t: '        {count}', c: '#abb2bf' }] },
+    { num: '18', tokens: [{ t: '      </', c: '#abb2bf' }, { t: 'button', c: '#e06c75' }, { t: '>', c: '#abb2bf' }] },
+    { num: '19', tokens: [{ t: '    </', c: '#abb2bf' }, { t: 'div', c: '#e06c75' }, { t: '>', c: '#abb2bf' }] },
+    { num: '20', tokens: [{ t: '  )', c: '#abb2bf' }] },
+    { num: '21', tokens: [{ t: '}', c: '#abb2bf' }] },
+  ];
+
+  cctx.font = '13px monospace';
+  codeLines.forEach(function(line, i) {
+    const ly = 18 + i * 17;
+    // Line number
+    cctx.fillStyle = '#555570';
+    cctx.textAlign = 'right';
+    cctx.fillText(line.num, 30, ly);
+    // Tokens
+    cctx.textAlign = 'left';
+    let tx = 42;
+    line.tokens.forEach(function(tok) {
+      cctx.fillStyle = tok.c;
+      cctx.fillText(tok.t, tx, ly);
+      tx += cctx.measureText(tok.t).width;
+    });
+  });
+
+  // Cursor blink line
+  cctx.fillStyle = '#abb2bf';
+  cctx.fillRect(42, 17 * 8 + 5, 1.5, 14);
+
+  const codeMonTex = new THREE.CanvasTexture(codeCanvas);
+  const codeScreenMat = new THREE.MeshStandardMaterial({ map: codeMonTex, emissiveMap: codeMonTex, emissive: 0xffffff, emissiveIntensity: 0.4, roughness: 0.3, metalness: 0.4 });
+  const codeScreen = new THREE.Mesh(new THREE.PlaneGeometry(codeMonW, codeMonH), codeScreenMat);
+  codeScreen.position.set(0, codeMonH / 2 + 0.02, 0);
+  codeScreen.rotation.x = -0.12;
+  codeMonGroup.add(codeScreen);
+
+  // Bezel
+  const cbz = 0.025;
+  const cBezelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.5 });
+  const cbTop = new THREE.Mesh(new THREE.BoxGeometry(codeMonW + cbz * 2, cbz, 0.02), cBezelMat);
+  cbTop.position.set(0, codeMonH / 2 + 0.02 + codeMonH / 2 + cbz / 2, 0); cbTop.rotation.x = -0.12; codeMonGroup.add(cbTop);
+  const cbBot = new THREE.Mesh(new THREE.BoxGeometry(codeMonW + cbz * 2, cbz, 0.02), cBezelMat);
+  cbBot.position.set(0, codeMonH / 2 + 0.02 - codeMonH / 2 - cbz / 2, 0); cbBot.rotation.x = -0.12; codeMonGroup.add(cbBot);
+  const cbL = new THREE.Mesh(new THREE.BoxGeometry(cbz, codeMonH + cbz * 2, 0.02), cBezelMat);
+  cbL.position.set(-codeMonW / 2 - cbz / 2, codeMonH / 2 + 0.02, 0); cbL.rotation.x = -0.12; codeMonGroup.add(cbL);
+  const cbR = new THREE.Mesh(new THREE.BoxGeometry(cbz, codeMonH + cbz * 2, 0.02), cBezelMat);
+  cbR.position.set(codeMonW / 2 + cbz / 2, codeMonH / 2 + 0.02, 0); cbR.rotation.x = -0.12; codeMonGroup.add(cbR);
+
+  // Stand
+  const codeStand = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.04), cBezelMat);
+  codeStand.position.set(0, 0.04, 0); codeMonGroup.add(codeStand);
+  const codeBase = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.015, 0.1), cBezelMat);
+  codeBase.position.set(0, 0.008, 0.03); codeMonGroup.add(codeBase);
+
+  // Position on side desk, facing into room (+X), against the wall
+  codeMonGroup.position.set(sideDeskX - deskD / 2 + 0.12, monSurfY, sideDeskZ);
+  codeMonGroup.rotation.y = Math.PI / 2; // face into the room
+  codeMonGroup.castShadow = true;
+  scene.add(codeMonGroup);
+
+  // --- Two sheets of paper with scribbles (on side desk, near lamp) ---
+  const paperW = 0.18, paperD = 0.24, paperH = 0.002;
+  const paperSurfY = deskY + deskThick / 2 + paperH / 2;
+  const paperMeshes = [];
+
+  for (let pi = 0; pi < 2; pi++) {
+    const pCanvas = document.createElement('canvas');
+    pCanvas.width = 256; pCanvas.height = 340;
+    const pctx = pCanvas.getContext('2d');
+    // Paper background — slightly off-white
+    pctx.fillStyle = pi === 0 ? '#f5f2eb' : '#f0ece3';
+    pctx.fillRect(0, 0, 256, 340);
+
+    // Scribble lines
+    pctx.strokeStyle = 'rgba(40,50,70,0.5)';
+    pctx.lineWidth = 1.5;
+    const lineCount = 8 + pi * 3;
+    for (let li = 0; li < lineCount; li++) {
+      pctx.beginPath();
+      const ly = 30 + li * 28 + (pi * 10);
+      const lineW = 60 + Math.random() * 160;
+      pctx.moveTo(20, ly);
+      // Wavy scribble
+      for (let sx = 20; sx < 20 + lineW; sx += 8) {
+        pctx.lineTo(sx, ly + (Math.random() - 0.5) * 4);
+      }
+      pctx.stroke();
+    }
+
+    // A few shorter marks / annotations
+    pctx.strokeStyle = 'rgba(40,50,70,0.35)';
+    pctx.lineWidth = 1;
+    for (let a = 0; a < 3; a++) {
+      pctx.beginPath();
+      const ax = 20 + Math.random() * 100, ay = 40 + Math.random() * 260;
+      pctx.moveTo(ax, ay);
+      pctx.lineTo(ax + 15 + Math.random() * 30, ay + (Math.random() - 0.5) * 6);
+      pctx.stroke();
+    }
+
+    // Small circle doodle on first sheet
+    if (pi === 0) {
+      pctx.beginPath();
+      pctx.arc(180, 280, 18, 0, Math.PI * 2);
+      pctx.strokeStyle = 'rgba(40,50,70,0.4)';
+      pctx.lineWidth = 1.2;
+      pctx.stroke();
+    }
+
+    const paperTex = new THREE.CanvasTexture(pCanvas);
+    const paperMat2 = new THREE.MeshStandardMaterial({ map: paperTex, roughness: 0.85, metalness: 0.0 });
+    const paperMesh = new THREE.Mesh(new THREE.BoxGeometry(paperW, paperH, paperD), paperMat2);
+
+    // Position: on side desk, separated along Z, rotated 90deg right
+    const px = sideDeskX + pi * 0.04;
+    const pz = sideDeskZ - 0.25 + pi * 0.55;
+    paperMesh.position.set(px, paperSurfY, pz);
+    // 90deg right + slight casual offset
+    paperMesh.rotation.y = Math.PI / 2 + (pi === 0 ? 0.1 : -0.08);
+    paperMesh.castShadow = true; paperMesh.receiveShadow = true;
+    scene.add(paperMesh);
+    paperMeshes.push(paperMesh);
+  }
+
+  // --- Stack of books on back desk (left side, away from monitors) ---
+  const stkColors = [0x8B2500, 0x1a3a5c, 0x2e4d2e, 0x6b3a6b, 0xc2713d];
+  const stkX = -backDeskW / 2 + 0.25;
+  const stkZ = backDeskZ;
+  let stkY = deskY + deskThick / 2;
+  for (let bi = 0; bi < stkColors.length; bi++) {
+    const bkW = 0.32 + Math.random() * 0.1;
+    const bkH = 0.04 + Math.random() * 0.025;
+    const bkD = 0.22 + Math.random() * 0.06;
+    const bkMat = new THREE.MeshStandardMaterial({ color: stkColors[bi], roughness: 0.7, metalness: 0.05 });
+    const bk = new THREE.Mesh(new THREE.BoxGeometry(bkW, bkH, bkD), bkMat);
+    bk.position.set(stkX + (Math.random() - 0.5) * 0.08, stkY + bkH / 2, stkZ + (Math.random() - 0.5) * 0.06);
+    bk.rotation.y = (Math.random() - 0.5) * 0.4;
+    bk.rotation.z = (Math.random() - 0.5) * 0.05;
+    bk.castShadow = true; bk.receiveShadow = true;
+    scene.add(bk);
+    stkY += bkH;
+  }
+
+  // --- Globe (right end of back desk) ---
+  const globeX = backDeskW / 2 - 0.3;
+  const globeSurfY = deskY + deskThick / 2;
+  const globeR = 0.12;
+  const globeGroup = new THREE.Group();
+  globeGroup.position.set(globeX, globeSurfY, backDeskZ);
+
+  // Base
+  const globeBaseMat = new THREE.MeshStandardMaterial({ color: 0x3B2314, roughness: 0.6, metalness: 0.15 });
+  const globeBase = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.02, 16), globeBaseMat);
+  globeBase.position.y = 0.01;
+  globeGroup.add(globeBase);
+
+  // Stand post
+  const globePost = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.1, 8), globeBaseMat);
+  globePost.position.y = 0.07;
+  globeGroup.add(globePost);
+
+  // Axis ring
+  const globeRingMat = new THREE.MeshStandardMaterial({ color: 0xc0a050, roughness: 0.3, metalness: 0.6 });
+  const globeRing = new THREE.Mesh(new THREE.TorusGeometry(globeR + 0.005, 0.004, 8, 32), globeRingMat);
+  globeRing.position.y = 0.12 + globeR;
+  globeRing.rotation.x = 0.3;
+  globeGroup.add(globeRing);
+
+  // Globe sphere — canvas texture with land masses
+  const globeCanvas = document.createElement('canvas');
+  globeCanvas.width = 256; globeCanvas.height = 128;
+  const gctx = globeCanvas.getContext('2d');
+  gctx.fillStyle = '#1a4a7a';
+  gctx.fillRect(0, 0, 256, 128);
+  // Rough landmasses
+  gctx.fillStyle = '#3a8a3a';
+  [[30,20,50,35],[120,15,40,30],[90,50,60,25],[180,30,45,40],[20,60,35,20],[200,55,30,25]].forEach(function(b) {
+    gctx.beginPath();
+    gctx.ellipse(b[0], b[1], b[2]/2, b[3]/2, 0, 0, Math.PI*2);
+    gctx.fill();
+  });
+  // Grid lines
+  gctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  gctx.lineWidth = 0.5;
+  for (let i = 0; i < 256; i += 32) { gctx.beginPath(); gctx.moveTo(i,0); gctx.lineTo(i,128); gctx.stroke(); }
+  for (let i = 0; i < 128; i += 16) { gctx.beginPath(); gctx.moveTo(0,i); gctx.lineTo(256,i); gctx.stroke(); }
+
+  const globeTex = new THREE.CanvasTexture(globeCanvas);
+  const globeMat = new THREE.MeshStandardMaterial({ map: globeTex, roughness: 0.4, metalness: 0.1 });
+  const globeSphere = new THREE.Mesh(new THREE.SphereGeometry(globeR, 24, 16), globeMat);
+  globeSphere.position.y = 0.12 + globeR;
+  globeGroup.add(globeSphere);
+
+  scene.add(globeGroup);
+
+  // --- Pencil cup (between book stack and left monitor) ---
+  const cupX = stkX + 0.35;
+  const cupZ = backDeskZ + 0.08;
+  const cupR = 0.035, cupH = 0.1;
+  const cupMat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.5, metalness: 0.3 });
+  const cupMesh = new THREE.Mesh(new THREE.CylinderGeometry(cupR, cupR * 0.9, cupH, 12), cupMat);
+  cupMesh.position.set(cupX, globeSurfY + cupH / 2, cupZ);
+  cupMesh.castShadow = true;
+  scene.add(cupMesh);
+
+  // Pencils in the cup
+  const pencilColors = [0xf0c040, 0xf0c040, 0xe06030, 0x3080d0, 0x2a2a2a];
+  for (let pi2 = 0; pi2 < pencilColors.length; pi2++) {
+    const pLen = 0.13 + Math.random() * 0.04;
+    const pMat = new THREE.MeshStandardMaterial({ color: pencilColors[pi2], roughness: 0.6, metalness: 0.05 });
+    const pencil = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, pLen, 6), pMat);
+    const angle = (pi2 / pencilColors.length) * Math.PI * 2 + Math.random() * 0.3;
+    const tilt = 0.1 + Math.random() * 0.15;
+    pencil.position.set(
+      cupX + Math.cos(angle) * 0.012,
+      globeSurfY + cupH * 0.5 + pLen * 0.35,
+      cupZ + Math.sin(angle) * 0.012
+    );
+    pencil.rotation.x = Math.cos(angle) * tilt;
+    pencil.rotation.z = Math.sin(angle) * tilt;
+    pencil.castShadow = true;
+    scene.add(pencil);
+    // Pencil tip
+    const tipMat = new THREE.MeshStandardMaterial({ color: 0xdec9a0, roughness: 0.5, metalness: 0.05 });
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.005, 0.015, 6), tipMat);
+    tip.position.y = pLen / 2 + 0.007;
+    pencil.add(tip);
+  }
+
+  // --- Loose pencil on desk (near keyboard) ---
+  const loosePMat = new THREE.MeshStandardMaterial({ color: 0xf0c040, roughness: 0.6, metalness: 0.05 });
+  const loosePencil = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.16, 6), loosePMat);
+  loosePencil.position.set(monX - kbW / 2 - 0.06, globeSurfY + 0.005, backDeskZ + 0.15);
+  loosePencil.rotation.z = Math.PI / 2;
+  loosePencil.rotation.y = 0.3;
+  loosePencil.castShadow = true;
+  scene.add(loosePencil);
+  // Tip
+  const looseTipMat = new THREE.MeshStandardMaterial({ color: 0xdec9a0, roughness: 0.5, metalness: 0.05 });
+  const looseTip = new THREE.Mesh(new THREE.ConeGeometry(0.005, 0.015, 6), looseTipMat);
+  looseTip.position.y = 0.08 + 0.007;
+  loosePencil.add(looseTip);
+
+  // --- Small sticky note pad (near pencil cup) ---
+  const stickyX = cupX + 0.1, stickyZ = cupZ + 0.04;
+  const stickyMat = new THREE.MeshStandardMaterial({ color: 0xfff176, roughness: 0.8, metalness: 0.0 });
+  const stickyPad = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.015, 0.08), stickyMat);
+  stickyPad.position.set(stickyX, globeSurfY + 0.0075, stickyZ);
+  stickyPad.rotation.y = 0.2;
+  stickyPad.castShadow = true;
+  scene.add(stickyPad);
 
   // --- Bookshelf (right wall, solid front half) ---
   const bsX = HALF - 0.18;     // flush against right wall
@@ -1623,13 +2070,22 @@
   let hoveringRight = false;
   let hoveringCenter = false;
   let hoveringLeft = false;
+  let hoveringPaper = false;
   const aboutModal = document.getElementById('about-modal');
+  const paperModal = document.getElementById('paper-modal');
   let aboutOpen = false;
+  let paperOpen = false;
 
   document.addEventListener('click', () => {
     if (aboutOpen) {
       aboutModal.style.display = 'none';
       aboutOpen = false;
+      renderer.domElement.requestPointerLock();
+      return;
+    }
+    if (paperOpen) {
+      paperModal.style.display = 'none';
+      paperOpen = false;
       renderer.domElement.requestPointerLock();
       return;
     }
@@ -1643,6 +2099,11 @@
       document.exitPointerLock();
       aboutModal.style.display = 'block';
       aboutOpen = true;
+    }
+    if (locked && hoveringPaper) {
+      document.exitPointerLock();
+      paperModal.style.display = 'block';
+      paperOpen = true;
     }
   });
 
@@ -1719,9 +2180,12 @@
       hoveringCenter = cHits.length > 0 && cHits[0].distance < 3;
       const lHits = raycaster.intersectObjects(lMonGroup.children, true);
       hoveringLeft = lHits.length > 0 && lHits[0].distance < 3;
+      const pHits = raycaster.intersectObjects(paperMeshes, true);
+      hoveringPaper = pHits.length > 0 && pHits[0].distance < 3;
       crosshair.classList.toggle('hover-green', hoveringRight);
       crosshair.classList.toggle('hover-pink', hoveringLeft);
       crosshair.classList.toggle('hover-blue', hoveringCenter);
+      crosshair.classList.toggle('hover-paper', hoveringPaper);
     }
 
     // Neon sign flicker — dying neon effect, stops after 5s
