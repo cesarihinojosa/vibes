@@ -99,6 +99,13 @@
     border-radius: 50%;
   }
 
+  #modal-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 15;
+  }
+
   #about-modal {
     display: none;
     position: fixed;
@@ -128,12 +135,12 @@
     text-align: center;
   }
 
-  #paper-modal {
+  .paper-modal {
     display: none;
     position: fixed;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 400px;
+    width: 420px;
     background: rgba(245, 240, 230, 0.95);
     border: 1px solid rgba(180, 160, 120, 0.5);
     border-radius: 4px;
@@ -146,23 +153,197 @@
     backdrop-filter: blur(8px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
-  #paper-modal h2 {
+  .paper-modal h2 {
     margin: 0 0 16px 0;
     font-size: 18px;
     color: rgba(50, 50, 45, 0.9);
     font-weight: bold;
   }
-  #paper-modal .close-hint {
+  .paper-modal .close-hint {
     margin-top: 20px;
     font-size: 11px;
     color: rgba(140, 120, 80, 0.5);
     text-align: center;
+  }
+  #cv-modal {
+    width: 520px;
+    max-height: 80vh;
+    overflow-y: auto;
+    line-height: 1.6;
+  }
+  #cv-modal h2 {
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  #cv-modal .cv-subtitle {
+    text-align: center;
+    font-size: 11px;
+    color: rgba(80, 75, 60, 0.7);
+    margin-bottom: 18px;
+  }
+  #cv-modal h3 {
+    font-size: 14px;
+    color: rgba(50, 50, 45, 0.9);
+    margin: 18px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(140, 120, 80, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  #cv-modal .cv-entry {
+    margin-bottom: 12px;
+  }
+  #cv-modal .cv-entry .cv-role {
+    font-weight: bold;
+    font-size: 13px;
+    color: rgba(40, 40, 35, 0.9);
+  }
+  #cv-modal .cv-entry .cv-place {
+    font-size: 12px;
+    color: rgba(80, 75, 60, 0.8);
+  }
+  #cv-modal .cv-entry .cv-date {
+    font-size: 11px;
+    color: rgba(120, 110, 85, 0.7);
+  }
+  #cv-modal .cv-entry .cv-desc {
+    font-size: 12px;
+    color: rgba(60, 55, 45, 0.75);
+    margin-top: 2px;
+  }
+  #cv-modal .cv-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  #cv-modal .cv-skills span {
+    font-size: 11px;
+    padding: 3px 8px;
+    background: rgba(60, 50, 30, 0.08);
+    border: 1px solid rgba(140, 120, 80, 0.25);
+    border-radius: 3px;
+    color: rgba(50, 50, 45, 0.8);
+  }
+
+  .paper-modal .modal-link {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 8px 20px;
+    background: rgba(60, 50, 30, 0.1);
+    border: 1px solid rgba(140, 120, 80, 0.5);
+    border-radius: 4px;
+    color: rgba(50, 50, 45, 0.9);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .paper-modal .modal-link:hover {
+    background: rgba(60, 50, 30, 0.2);
+    border-color: rgba(140, 120, 80, 0.8);
   }
 
   #crosshair.hover-paper {
     width: 22px; height: 22px;
     border: 1.5px solid rgba(210,190,140,0.8);
     border-radius: 50%;
+  }
+
+  #linkedin-modal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 420px;
+    background: rgba(23, 10, 16, 0.92);
+    border: 1px solid rgba(255, 80, 180, 0.35);
+    border-radius: 8px;
+    padding: 30px 35px;
+    z-index: 20;
+    font-family: 'Courier New', monospace;
+    color: rgba(240, 180, 210, 0.85);
+    font-size: 14px;
+    line-height: 1.7;
+    backdrop-filter: blur(8px);
+  }
+  #linkedin-modal h2 {
+    margin: 0 0 16px 0;
+    font-size: 22px;
+    color: rgba(255, 80, 180, 0.9);
+  }
+  #linkedin-modal .modal-link {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 8px 20px;
+    background: rgba(255, 80, 180, 0.15);
+    border: 1px solid rgba(255, 80, 180, 0.5);
+    border-radius: 4px;
+    color: rgba(255, 80, 180, 0.9);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  #linkedin-modal .modal-link:hover {
+    background: rgba(255, 80, 180, 0.3);
+    border-color: rgba(255, 80, 180, 0.8);
+  }
+  #linkedin-modal .close-hint {
+    margin-top: 20px;
+    font-size: 11px;
+    color: rgba(255, 80, 180, 0.3);
+    text-align: center;
+  }
+
+  #github-modal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 420px;
+    background: rgba(13, 17, 23, 0.92);
+    border: 1px solid rgba(100, 255, 140, 0.35);
+    border-radius: 8px;
+    padding: 30px 35px;
+    z-index: 20;
+    font-family: 'Courier New', monospace;
+    color: rgba(180, 240, 200, 0.85);
+    font-size: 14px;
+    line-height: 1.7;
+    backdrop-filter: blur(8px);
+  }
+  #github-modal h2 {
+    margin: 0 0 16px 0;
+    font-size: 22px;
+    color: rgba(100, 255, 140, 0.9);
+  }
+  #github-modal .modal-link {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 8px 20px;
+    background: rgba(100, 255, 140, 0.15);
+    border: 1px solid rgba(100, 255, 140, 0.5);
+    border-radius: 4px;
+    color: rgba(100, 255, 140, 0.9);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  #github-modal .modal-link:hover {
+    background: rgba(100, 255, 140, 0.3);
+    border-color: rgba(100, 255, 140, 0.8);
+  }
+  #github-modal .close-hint {
+    margin-top: 20px;
+    font-size: 11px;
+    color: rgba(100, 255, 140, 0.3);
+    text-align: center;
   }
 
   #info {
@@ -191,16 +372,98 @@
 <div id="crosshair"></div>
 <div id="info">ESC to release cursor</div>
 
-<div id="paper-modal">
-  <h2>Notes</h2>
-  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada. Nulla facilisi. Etiam non diam ante. Sed vehicula tortor sit amet nunc tristique mollis.</p>
-  <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Donec sed odio dui. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
+<div id="modal-backdrop"></div>
+
+<div id="cv-modal" class="paper-modal">
+  <h2>Cesar Hinojosa</h2>
+  <div class="cv-subtitle">San Antonio, TX | Software Engineer</div>
+
+  <h3>Experience</h3>
+  <div class="cv-entry">
+    <div class="cv-role">Associate Software Engineer</div>
+    <div class="cv-place">Northrop Grumman — San Antonio, TX</div>
+    <div class="cv-date">Oct 2024 — Present</div>
+    <div class="cv-desc">Lead developer on a production system delivering a containerized Kotlin/Python application deployed to Kubernetes. Implemented automated integration testing with pytest, designed RESTful APIs in Kotlin (Spring Boot), and led CI/CD adoption across the program.</div>
+  </div>
+  <div class="cv-entry">
+    <div class="cv-role">Cyber Software Engineer Intern</div>
+    <div class="cv-place">Northrop Grumman — San Antonio, TX</div>
+    <div class="cv-date">May 2023 — July 2023</div>
+    <div class="cv-desc">Developed and maintained embedded software in C++, supporting builds, testing, and deployment in Linux and virtualized hardware environments.</div>
+  </div>
+  <div class="cv-entry">
+    <div class="cv-role">Game Developer Intern</div>
+    <div class="cv-place">Resilience Inc. — Remote</div>
+    <div class="cv-date">Oct 2022 — May 2023</div>
+    <div class="cv-desc">Designed and developed an educational PC game in C# and Unity aimed at teaching children task prioritization through interactive gameplay.</div>
+  </div>
+
+  <h3>Education</h3>
+  <div class="cv-entry">
+    <div class="cv-role">B.S. Computer Science</div>
+    <div class="cv-place">University of Texas at San Antonio</div>
+    <div class="cv-date">Oct 2020 — May 2024 | GPA: 3.9/4.0</div>
+  </div>
+
+  <h3>Skills</h3>
+  <div class="cv-skills">
+    <span>Go</span>
+    <span>C</span>
+    <span>C++</span>
+    <span>Kotlin</span>
+    <span>Java</span>
+    <span>Python</span>
+    <span>C#</span>
+    <span>JavaScript</span>
+    <span>SQL</span>
+    <span>Bash</span>
+    <span>Docker</span>
+    <span>Kubernetes</span>
+    <span>CI/CD</span>
+    <span>Linux</span>
+    <span>Spring Boot</span>
+    <span>Flask</span>
+    <span>Unity</span>
+    <span>Pytest</span>
+  </div>
+
+  <h3>Projects</h3>
+  <div class="cv-skills">
+    <span>POSIX Shell (Go)</span>
+    <span>Digital Bookshelf (Flask, AWS)</span>
+    <span>Educational Pizza Game (Unity, C#)</span>
+    <span>Inventory System (Python, SQL)</span>
+    <span>Train an AI (Python, RL)</span>
+    <span>War Card Game (Java, OOP)</span>
+  </div>
+
+  <div class="close-hint">[ click anywhere to close ]</div>
+</div>
+
+<div id="pub-modal" class="paper-modal">
+  <h2>Publications</h2>
+  <p style="margin-bottom:6px; color:rgba(40,40,35,0.7); font-size:12px;">Hinojosa, C., et al. "TrainYourSnakeAI: A Novel Tool to Teach Reinforcement Learning to Middle School Students" — Proceedings of the 56th ACM Technical Symposium on Computer Science Education V. 1.</p>
+  <a class="modal-link" href="https://doi.org/10.1145/3641554.3701907" target="_blank" rel="noopener noreferrer">Read Paper</a>
   <div class="close-hint">[ click anywhere to close ]</div>
 </div>
 
 <div id="about-modal">
   <h2>About Me</h2>
   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+  <div class="close-hint">[ click anywhere to close ]</div>
+</div>
+
+<div id="linkedin-modal">
+  <h2>LinkedIn</h2>
+  <p>Connect with me on LinkedIn to see my professional experience and stay in touch.</p>
+  <a class="modal-link" href="https://www.linkedin.com/in/cesar-hinojosa" target="_blank" rel="noopener noreferrer">Visit LinkedIn Profile</a>
+  <div class="close-hint">[ click anywhere to close ]</div>
+</div>
+
+<div id="github-modal">
+  <h2>GitHub</h2>
+  <p>Check out my GitHub to explore the projects and code I've been working on.</p>
+  <a class="modal-link" href="https://github.com/cesarihinojosa" target="_blank" rel="noopener noreferrer">Visit GitHub Profile</a>
   <div class="close-hint">[ click anywhere to close ]</div>
 </div>
 
@@ -216,7 +479,7 @@
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(1);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -279,8 +542,26 @@
   const wallColor = 0x555555;
   const wallMat = new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.9, metalness: 0.02 });
 
-  // Front wall — full solid wall
-  const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_SIZE, ROOM_HEIGHT), wallMat);
+  // Front wall — with circular porthole window near the couch
+  const portholeX = -2.5;       // shape-space offset (negative = right side in world after PI rotation)
+  const portholeY = 0.0;        // offset from wall center (eye-level when seated)
+  const portholeR = 0.55;       // porthole radius
+
+  function makeWallWithCircularHole(wallW, wallH, cx, cy, radius) {
+    const s = new THREE.Shape();
+    s.moveTo(-wallW / 2, -wallH / 2);
+    s.lineTo(wallW / 2, -wallH / 2);
+    s.lineTo(wallW / 2, wallH / 2);
+    s.lineTo(-wallW / 2, wallH / 2);
+    s.lineTo(-wallW / 2, -wallH / 2);
+    const h = new THREE.Path();
+    h.absarc(cx, cy, radius, 0, Math.PI * 2, true);
+    s.holes.push(h);
+    return new THREE.ShapeGeometry(s);
+  }
+
+  const frontWallGeo = makeWallWithCircularHole(ROOM_SIZE, ROOM_HEIGHT, portholeX, portholeY, portholeR);
+  const frontWall = new THREE.Mesh(frontWallGeo, wallMat);
   frontWall.position.set(0, HALF_H, HALF);
   frontWall.rotation.set(0, Math.PI, 0);
   frontWall.receiveShadow = true;
@@ -560,7 +841,42 @@
   addSideFrameV(HALF, -winMargin, Math.PI / 2);
   addSideFrameV(HALF, -HALF / 2, Math.PI / 2);
 
+  // --- Circular Porthole Window Frame (front wall, right of couch) ---
+  // World position of porthole center: negate portholeX because wall is rotated PI
+  const portholeWorldX = -portholeX;  // -(-2.5) = 2.5 in world space (right of couch)
+  const portholeWorldY = HALF_H + portholeY;
+  const portholeWorldZ = HALF;
 
+  // Outer ring — thick torus
+  const portFrameGeo = new THREE.TorusGeometry(portholeR + 0.02, 0.06, 16, 64);
+  const portFrame = new THREE.Mesh(portFrameGeo, frameMat);
+  portFrame.position.set(portholeWorldX, portholeWorldY, portholeWorldZ - 0.01);
+  portFrame.castShadow = true;
+  scene.add(portFrame);
+
+  // Inner ring — thinner accent ring
+  const portInnerGeo = new THREE.TorusGeometry(portholeR - 0.03, 0.025, 12, 64);
+  const portInner = new THREE.Mesh(portInnerGeo, frameMat);
+  portInner.position.set(portholeWorldX, portholeWorldY, portholeWorldZ - 0.03);
+  portInner.castShadow = true;
+  scene.add(portInner);
+
+  // Cross bars — 4 thin bars across the porthole (like a nautical porthole)
+  for (let i = 0; i < 4; i++) {
+    const angle = (i / 4) * Math.PI;
+    const barLen = portholeR * 2 - 0.08;
+    const barGeo = new THREE.BoxGeometry(barLen, 0.025, frameDepth * 0.6);
+    const bar = new THREE.Mesh(barGeo, frameMat);
+    bar.position.set(portholeWorldX, portholeWorldY, portholeWorldZ - 0.02);
+    bar.rotation.z = angle;
+    bar.castShadow = true;
+    scene.add(bar);
+  }
+
+  // Subtle blue light through the porthole
+  const portholeLight = new THREE.PointLight(0x4488cc, 0.6, 6, 1.5);
+  portholeLight.position.set(portholeWorldX, portholeWorldY, portholeWorldZ - 0.3);
+  scene.add(portholeLight);
 
   // --- Sheer open curtains on all windows ---
   const curtainMat = new THREE.MeshStandardMaterial({
@@ -1133,8 +1449,7 @@
   // Primary neon point light
   const dkOrangeLight = new THREE.PointLight(0xFF5500, 1.8, 10, 1.5);
   dkOrangeLight.position.set(dkLampX, dkLampBaseY + 0.34, dkLampZ);
-  dkOrangeLight.castShadow = true;
-  dkOrangeLight.shadow.mapSize.set(512, 512);
+  dkOrangeLight.castShadow = false;
   scene.add(dkOrangeLight);
 
   // Secondary fill
@@ -1224,156 +1539,98 @@
 
   scene.add(mouseGroup);
 
-  // --- Code monitor on side desk (facing room, +X) ---
-  const codeMonW = 0.9, codeMonH = 0.55;
-  const codeMonGroup = new THREE.Group();
-
-  // Screen — canvas texture with code
-  const codeCanvas = document.createElement('canvas');
-  codeCanvas.width = 512; codeCanvas.height = 384;
-  const cctx = codeCanvas.getContext('2d');
-  cctx.fillStyle = '#1e1e2e';
-  cctx.fillRect(0, 0, 512, 384);
-
-  // Line numbers gutter
-  cctx.fillStyle = '#2a2a3a';
-  cctx.fillRect(0, 0, 36, 384);
-
-  const codeLines = [
-    { num: '1', tokens: [{ t: 'import ', c: '#c678dd' }, { t: 'React', c: '#e5c07b' }, { t: ' from ', c: '#c678dd' }, { t: "'react'", c: '#98c379' }] },
-    { num: '2', tokens: [{ t: 'import ', c: '#c678dd' }, { t: '{ useState }', c: '#e5c07b' }, { t: ' from ', c: '#c678dd' }, { t: "'react'", c: '#98c379' }] },
-    { num: '3', tokens: [] },
-    { num: '4', tokens: [{ t: 'const ', c: '#c678dd' }, { t: 'App', c: '#61afef' }, { t: ' = () => {', c: '#abb2bf' }] },
-    { num: '5', tokens: [{ t: '  const ', c: '#c678dd' }, { t: '[count, setCount]', c: '#e06c75' }, { t: ' = ', c: '#abb2bf' }, { t: 'useState', c: '#61afef' }, { t: '(0)', c: '#d19a66' }] },
-    { num: '6', tokens: [{ t: '  const ', c: '#c678dd' }, { t: '[name, setName]', c: '#e06c75' }, { t: ' = ', c: '#abb2bf' }, { t: 'useState', c: '#61afef' }, { t: "('')", c: '#98c379' }] },
-    { num: '7', tokens: [] },
-    { num: '8', tokens: [{ t: '  const ', c: '#c678dd' }, { t: 'handleClick', c: '#61afef' }, { t: ' = () => {', c: '#abb2bf' }] },
-    { num: '9', tokens: [{ t: '    setCount', c: '#61afef' }, { t: '(prev => prev + 1)', c: '#abb2bf' }] },
-    { num: '10', tokens: [{ t: '    console', c: '#e5c07b' }, { t: '.log', c: '#61afef' }, { t: '(', c: '#abb2bf' }, { t: "'clicked'", c: '#98c379' }, { t: ')', c: '#abb2bf' }] },
-    { num: '11', tokens: [{ t: '  }', c: '#abb2bf' }] },
-    { num: '12', tokens: [] },
-    { num: '13', tokens: [{ t: '  return ', c: '#c678dd' }, { t: '(', c: '#abb2bf' }] },
-    { num: '14', tokens: [{ t: '    <', c: '#abb2bf' }, { t: 'div', c: '#e06c75' }, { t: ' className=', c: '#d19a66' }, { t: '"app"', c: '#98c379' }, { t: '>', c: '#abb2bf' }] },
-    { num: '15', tokens: [{ t: '      <', c: '#abb2bf' }, { t: 'h1', c: '#e06c75' }, { t: '>{name}</', c: '#abb2bf' }, { t: 'h1', c: '#e06c75' }, { t: '>', c: '#abb2bf' }] },
-    { num: '16', tokens: [{ t: '      <', c: '#abb2bf' }, { t: 'button', c: '#e06c75' }, { t: ' onClick=', c: '#d19a66' }, { t: '{handleClick}', c: '#abb2bf' }, { t: '>', c: '#abb2bf' }] },
-    { num: '17', tokens: [{ t: '        {count}', c: '#abb2bf' }] },
-    { num: '18', tokens: [{ t: '      </', c: '#abb2bf' }, { t: 'button', c: '#e06c75' }, { t: '>', c: '#abb2bf' }] },
-    { num: '19', tokens: [{ t: '    </', c: '#abb2bf' }, { t: 'div', c: '#e06c75' }, { t: '>', c: '#abb2bf' }] },
-    { num: '20', tokens: [{ t: '  )', c: '#abb2bf' }] },
-    { num: '21', tokens: [{ t: '}', c: '#abb2bf' }] },
-  ];
-
-  cctx.font = '13px monospace';
-  codeLines.forEach(function(line, i) {
-    const ly = 18 + i * 17;
-    // Line number
-    cctx.fillStyle = '#555570';
-    cctx.textAlign = 'right';
-    cctx.fillText(line.num, 30, ly);
-    // Tokens
-    cctx.textAlign = 'left';
-    let tx = 42;
-    line.tokens.forEach(function(tok) {
-      cctx.fillStyle = tok.c;
-      cctx.fillText(tok.t, tx, ly);
-      tx += cctx.measureText(tok.t).width;
-    });
-  });
-
-  // Cursor blink line
-  cctx.fillStyle = '#abb2bf';
-  cctx.fillRect(42, 17 * 8 + 5, 1.5, 14);
-
-  const codeMonTex = new THREE.CanvasTexture(codeCanvas);
-  const codeScreenMat = new THREE.MeshStandardMaterial({ map: codeMonTex, emissiveMap: codeMonTex, emissive: 0xffffff, emissiveIntensity: 0.4, roughness: 0.3, metalness: 0.4 });
-  const codeScreen = new THREE.Mesh(new THREE.PlaneGeometry(codeMonW, codeMonH), codeScreenMat);
-  codeScreen.position.set(0, codeMonH / 2 + 0.02, 0);
-  codeScreen.rotation.x = -0.12;
-  codeMonGroup.add(codeScreen);
-
-  // Bezel
-  const cbz = 0.025;
-  const cBezelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5, metalness: 0.5 });
-  const cbTop = new THREE.Mesh(new THREE.BoxGeometry(codeMonW + cbz * 2, cbz, 0.02), cBezelMat);
-  cbTop.position.set(0, codeMonH / 2 + 0.02 + codeMonH / 2 + cbz / 2, 0); cbTop.rotation.x = -0.12; codeMonGroup.add(cbTop);
-  const cbBot = new THREE.Mesh(new THREE.BoxGeometry(codeMonW + cbz * 2, cbz, 0.02), cBezelMat);
-  cbBot.position.set(0, codeMonH / 2 + 0.02 - codeMonH / 2 - cbz / 2, 0); cbBot.rotation.x = -0.12; codeMonGroup.add(cbBot);
-  const cbL = new THREE.Mesh(new THREE.BoxGeometry(cbz, codeMonH + cbz * 2, 0.02), cBezelMat);
-  cbL.position.set(-codeMonW / 2 - cbz / 2, codeMonH / 2 + 0.02, 0); cbL.rotation.x = -0.12; codeMonGroup.add(cbL);
-  const cbR = new THREE.Mesh(new THREE.BoxGeometry(cbz, codeMonH + cbz * 2, 0.02), cBezelMat);
-  cbR.position.set(codeMonW / 2 + cbz / 2, codeMonH / 2 + 0.02, 0); cbR.rotation.x = -0.12; codeMonGroup.add(cbR);
-
-  // Stand
-  const codeStand = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.04), cBezelMat);
-  codeStand.position.set(0, 0.04, 0); codeMonGroup.add(codeStand);
-  const codeBase = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.015, 0.1), cBezelMat);
-  codeBase.position.set(0, 0.008, 0.03); codeMonGroup.add(codeBase);
-
-  // Position on side desk, facing into room (+X), against the wall
-  codeMonGroup.position.set(sideDeskX - deskD / 2 + 0.12, monSurfY, sideDeskZ);
-  codeMonGroup.rotation.y = Math.PI / 2; // face into the room
-  codeMonGroup.castShadow = true;
-  scene.add(codeMonGroup);
-
   // --- Two sheets of paper with scribbles (on side desk, near lamp) ---
   const paperW = 0.18, paperD = 0.24, paperH = 0.002;
   const paperSurfY = deskY + deskThick / 2 + paperH / 2;
   const paperMeshes = [];
 
-  for (let pi = 0; pi < 2; pi++) {
+  // Paper 0: CV
+  {
     const pCanvas = document.createElement('canvas');
     pCanvas.width = 256; pCanvas.height = 340;
     const pctx = pCanvas.getContext('2d');
-    // Paper background — slightly off-white
-    pctx.fillStyle = pi === 0 ? '#f5f2eb' : '#f0ece3';
+    pctx.fillStyle = '#f5f2eb';
     pctx.fillRect(0, 0, 256, 340);
 
-    // Scribble lines
-    pctx.strokeStyle = 'rgba(40,50,70,0.5)';
-    pctx.lineWidth = 1.5;
-    const lineCount = 8 + pi * 3;
-    for (let li = 0; li < lineCount; li++) {
-      pctx.beginPath();
-      const ly = 30 + li * 28 + (pi * 10);
-      const lineW = 60 + Math.random() * 160;
-      pctx.moveTo(20, ly);
-      // Wavy scribble
+    // Title
+    pctx.font = 'bold 16px monospace';
+    pctx.fillStyle = 'rgba(40,40,35,0.8)';
+    pctx.textAlign = 'center';
+    pctx.fillText('CURRICULUM', 128, 32);
+    pctx.fillText('VITAE', 128, 52);
+
+    // Horizontal rule
+    pctx.strokeStyle = 'rgba(40,50,70,0.4)';
+    pctx.lineWidth = 1;
+    pctx.beginPath(); pctx.moveTo(30, 64); pctx.lineTo(226, 64); pctx.stroke();
+
+    // Scribble lines simulating CV text
+    pctx.strokeStyle = 'rgba(40,50,70,0.45)';
+    pctx.lineWidth = 1.2;
+    const cvLines = [80, 100, 120, 140, 168, 188, 208, 228, 256, 276, 296];
+    cvLines.forEach(ly => {
+      const lineW = 50 + Math.random() * 160;
+      pctx.beginPath(); pctx.moveTo(20, ly);
       for (let sx = 20; sx < 20 + lineW; sx += 8) {
-        pctx.lineTo(sx, ly + (Math.random() - 0.5) * 4);
+        pctx.lineTo(sx, ly + (Math.random() - 0.5) * 3);
       }
       pctx.stroke();
-    }
-
-    // A few shorter marks / annotations
-    pctx.strokeStyle = 'rgba(40,50,70,0.35)';
-    pctx.lineWidth = 1;
-    for (let a = 0; a < 3; a++) {
-      pctx.beginPath();
-      const ax = 20 + Math.random() * 100, ay = 40 + Math.random() * 260;
-      pctx.moveTo(ax, ay);
-      pctx.lineTo(ax + 15 + Math.random() * 30, ay + (Math.random() - 0.5) * 6);
-      pctx.stroke();
-    }
-
-    // Small circle doodle on first sheet
-    if (pi === 0) {
-      pctx.beginPath();
-      pctx.arc(180, 280, 18, 0, Math.PI * 2);
-      pctx.strokeStyle = 'rgba(40,50,70,0.4)';
-      pctx.lineWidth = 1.2;
-      pctx.stroke();
-    }
+    });
 
     const paperTex = new THREE.CanvasTexture(pCanvas);
     const paperMat2 = new THREE.MeshStandardMaterial({ map: paperTex, roughness: 0.85, metalness: 0.0 });
     const paperMesh = new THREE.Mesh(new THREE.BoxGeometry(paperW, paperH, paperD), paperMat2);
+    paperMesh.position.set(sideDeskX, paperSurfY, sideDeskZ - 0.25);
+    paperMesh.rotation.y = Math.PI / 2 + 0.1;
+    paperMesh.castShadow = true; paperMesh.receiveShadow = true;
+    scene.add(paperMesh);
+    paperMeshes.push(paperMesh);
+  }
 
-    // Position: on side desk, separated along Z, rotated 90deg right
-    const px = sideDeskX + pi * 0.04;
-    const pz = sideDeskZ - 0.25 + pi * 0.55;
-    paperMesh.position.set(px, paperSurfY, pz);
-    // 90deg right + slight casual offset
-    paperMesh.rotation.y = Math.PI / 2 + (pi === 0 ? 0.1 : -0.08);
+  // Paper 1: Publications
+  {
+    const pCanvas = document.createElement('canvas');
+    pCanvas.width = 256; pCanvas.height = 340;
+    const pctx = pCanvas.getContext('2d');
+    pctx.fillStyle = '#f0ece3';
+    pctx.fillRect(0, 0, 256, 340);
+
+    // Title
+    pctx.font = 'bold 14px monospace';
+    pctx.fillStyle = 'rgba(40,40,35,0.8)';
+    pctx.textAlign = 'center';
+    pctx.fillText('PUBLICATIONS', 128, 32);
+
+    // Horizontal rule
+    pctx.strokeStyle = 'rgba(40,50,70,0.4)';
+    pctx.lineWidth = 1;
+    pctx.beginPath(); pctx.moveTo(30, 44); pctx.lineTo(226, 44); pctx.stroke();
+
+    // Simulated citation entries — groups of lines with gaps
+    pctx.strokeStyle = 'rgba(40,50,70,0.45)';
+    pctx.lineWidth = 1.2;
+    const entryStarts = [60, 120, 180, 240];
+    entryStarts.forEach(startY => {
+      // Bullet dot
+      pctx.fillStyle = 'rgba(40,50,70,0.5)';
+      pctx.beginPath(); pctx.arc(18, startY + 2, 2.5, 0, Math.PI * 2); pctx.fill();
+      // 3 lines per entry
+      for (let l = 0; l < 3; l++) {
+        const ly = startY + l * 16;
+        const lineW = 60 + Math.random() * 150;
+        pctx.beginPath(); pctx.moveTo(26, ly);
+        for (let sx = 26; sx < 26 + lineW; sx += 8) {
+          pctx.lineTo(sx, ly + (Math.random() - 0.5) * 3);
+        }
+        pctx.stroke();
+      }
+    });
+
+    const paperTex = new THREE.CanvasTexture(pCanvas);
+    const paperMat2 = new THREE.MeshStandardMaterial({ map: paperTex, roughness: 0.85, metalness: 0.0 });
+    const paperMesh = new THREE.Mesh(new THREE.BoxGeometry(paperW, paperH, paperD), paperMat2);
+    paperMesh.position.set(sideDeskX + 0.04, paperSurfY, sideDeskZ + 0.30);
+    paperMesh.rotation.y = Math.PI / 2 - 0.08;
     paperMesh.castShadow = true; paperMesh.receiveShadow = true;
     scene.add(paperMesh);
     paperMeshes.push(paperMesh);
@@ -1506,6 +1763,138 @@
   stickyPad.rotation.y = 0.2;
   stickyPad.castShadow = true;
   scene.add(stickyPad);
+
+  // --- Desk Chair (in front of center monitor) ---
+  const chairGroup = new THREE.Group();
+  const chairX = -0.5, chairZ = backDeskZ + deskD / 2 + 0.7;
+  const chairMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.6, metalness: 0.3 });
+  const chairFabric = new THREE.MeshStandardMaterial({ color: 0x2a2a30, roughness: 0.85, metalness: 0.05 });
+  const chairChromeMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.2, metalness: 0.8 });
+
+  // --- Base star (5-spoke, radiating from center to each wheel) ---
+  const spokeCount = 5;
+  const spokeLen = 0.32, spokeR = 0.02;
+  const baseY = 0.04;
+  for (let i = 0; i < spokeCount; i++) {
+    const angle = (i / spokeCount) * Math.PI * 2;
+    const dx = Math.sin(angle);
+    const dz = Math.cos(angle);
+
+    // Spoke arm — cylinder stretched from hub center toward wheel
+    const spokeGeo = new THREE.CylinderGeometry(spokeR, spokeR, spokeLen, 6);
+    // Cylinder is vertical by default (Y-axis). Rotate to lay flat along Z, then rotate around Y to aim outward.
+    const spoke = new THREE.Mesh(spokeGeo, chairChromeMat);
+    spoke.position.set(dx * spokeLen / 2, baseY, dz * spokeLen / 2);
+    // Point the cylinder from center toward (dx, 0, dz):
+    // Default cylinder axis = Y. We want it along (dx, 0, dz).
+    // Tilt from Y toward XZ plane (rotate around the perpendicular axis).
+    spoke.rotation.order = 'YXZ';
+    spoke.rotation.y = Math.atan2(dx, dz);
+    spoke.rotation.x = Math.PI / 2;
+    spoke.castShadow = true;
+    chairGroup.add(spoke);
+
+    // Caster wheel at end of each spoke
+    const wheel = new THREE.Mesh(
+      new THREE.SphereGeometry(0.025, 8, 8),
+      chairMat
+    );
+    wheel.position.set(dx * spokeLen, 0.025, dz * spokeLen);
+    chairGroup.add(wheel);
+  }
+
+  // --- Center hub (where spokes meet) ---
+  const hub = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.04, 0.03, 16),
+    chairChromeMat
+  );
+  hub.position.set(0, 0.04, 0);
+  chairGroup.add(hub);
+
+  // --- Pneumatic cylinder ---
+  const cylH = 0.32;
+  const cylinder = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.025, 0.03, cylH, 12),
+    chairChromeMat
+  );
+  cylinder.position.set(0, 0.04 + cylH / 2, 0);
+  cylinder.castShadow = true;
+  chairGroup.add(cylinder);
+
+  // --- Seat ---
+  const seatY = 0.04 + cylH + 0.03;
+  const seatW = 0.5, seatD = 0.48, seatH = 0.07;
+
+  // Seat cushion — rounded extrude
+  const seatShape = roundedRectShape(seatW, seatD, 0.08);
+  const seatGeo = new THREE.ExtrudeGeometry(seatShape, {
+    depth: seatH,
+    bevelEnabled: true,
+    bevelThickness: 0.02,
+    bevelSize: 0.02,
+    bevelSegments: 4,
+    curveSegments: 8,
+  });
+  const seat = new THREE.Mesh(seatGeo, chairFabric);
+  seat.rotation.x = -Math.PI / 2;
+  seat.position.set(0, seatY, 0);
+  seat.castShadow = true; seat.receiveShadow = true;
+  chairGroup.add(seat);
+
+  // --- Backrest ---
+  const chBackW = 0.46, chBackH = 0.5, chBackD = 0.06;
+  const chBackY = seatY + 0.04;
+
+  // Backrest support bracket — short metal piece connecting seat to back
+  const chBracketGeo = new THREE.BoxGeometry(0.06, 0.1, 0.04);
+  const chBracket = new THREE.Mesh(chBracketGeo, chairChromeMat);
+  chBracket.position.set(0, chBackY + 0.02, seatD / 2 - 0.04);
+  chBracket.castShadow = true;
+  chairGroup.add(chBracket);
+
+  // Backrest cushion
+  const chBackShape = roundedRectShape(chBackW, chBackH, 0.06);
+  const chBackGeo = new THREE.ExtrudeGeometry(chBackShape, {
+    depth: chBackD,
+    bevelEnabled: true,
+    bevelThickness: 0.02,
+    bevelSize: 0.02,
+    bevelSegments: 4,
+    curveSegments: 8,
+  });
+  const chBack = new THREE.Mesh(chBackGeo, chairFabric);
+  chBack.position.set(0, chBackY + chBackH / 2 + 0.06, seatD / 2 - 0.02);
+  chBack.rotation.x = -0.08;  // slight recline
+  chBack.castShadow = true; chBack.receiveShadow = true;
+  chairGroup.add(chBack);
+
+  // --- Armrests ---
+  [-1, 1].forEach(side => {
+    const armX = side * (seatW / 2 + 0.01);
+
+    // Arm support (vertical post from seat)
+    const armPost = new THREE.Mesh(
+      new THREE.BoxGeometry(0.03, 0.18, 0.03),
+      chairMat
+    );
+    armPost.position.set(armX, seatY + 0.12, 0.02);
+    armPost.castShadow = true;
+    chairGroup.add(armPost);
+
+    // Arm pad (horizontal)
+    const armPad = new THREE.Mesh(
+      new THREE.BoxGeometry(0.06, 0.025, 0.22),
+      chairFabric
+    );
+    armPad.position.set(armX, seatY + 0.22, 0.0);
+    armPad.castShadow = true; armPad.receiveShadow = true;
+    chairGroup.add(armPad);
+  });
+
+  chairGroup.position.set(chairX, 0, chairZ);
+  chairGroup.rotation.y = Math.PI + 0.4;  // face the desk, angled to the right
+  chairGroup.castShadow = true;
+  scene.add(chairGroup);
 
   // --- Bookshelf (right wall, solid front half) ---
   const bsX = HALF - 0.18;     // flush against right wall
@@ -2011,8 +2400,7 @@
   // Primary neon point light — intense
   const orangeLight = new THREE.PointLight(0xFF5500, 1.8, 10, 1.5);
   orangeLight.position.set(nsX, lampBaseY + 0.34, nsZ);
-  orangeLight.castShadow = true;
-  orangeLight.shadow.mapSize.set(512, 512);
+  orangeLight.castShadow = false;
   scene.add(orangeLight);
 
   // Secondary fill — wider neon wash
@@ -2039,11 +2427,13 @@
   document.addEventListener('keydown', e => keys[e.code] = true);
   document.addEventListener('keyup', e => keys[e.code] = false);
 
+  let needsRender = true;  // flag for idle throttling
   document.addEventListener('mousemove', e => {
     if (!locked) return;
     yaw -= e.movementX * SENSITIVITY;
     pitch -= e.movementY * SENSITIVITY;
     pitch = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, pitch));
+    needsRender = true;
   });
 
   // Pointer lock
@@ -2059,7 +2449,8 @@
 
   document.addEventListener('pointerlockchange', () => {
     locked = document.pointerLockElement === renderer.domElement;
-    overlay.style.display = locked ? 'none' : 'flex';
+    const anyModalOpen = aboutOpen || cvOpen || pubOpen || linkedinOpen || githubOpen;
+    overlay.style.display = locked || anyModalOpen ? 'none' : 'flex';
     crosshair.style.display = locked ? 'block' : 'none';
     info.style.display = locked ? 'block' : 'none';
   });
@@ -2070,40 +2461,92 @@
   let hoveringRight = false;
   let hoveringCenter = false;
   let hoveringLeft = false;
-  let hoveringPaper = false;
+  let hoveringCV = false;
+  let hoveringPub = false;
   const aboutModal = document.getElementById('about-modal');
-  const paperModal = document.getElementById('paper-modal');
+  const cvModal = document.getElementById('cv-modal');
+  const pubModal = document.getElementById('pub-modal');
+  const linkedinModal = document.getElementById('linkedin-modal');
+  const githubModal = document.getElementById('github-modal');
+  const modalBackdrop = document.getElementById('modal-backdrop');
   let aboutOpen = false;
-  let paperOpen = false;
+  let cvOpen = false;
+  let pubOpen = false;
+  let linkedinOpen = false;
+  let githubOpen = false;
 
-  document.addEventListener('click', () => {
+  function showBackdrop() { modalBackdrop.style.display = 'block'; }
+  function hideBackdrop() { modalBackdrop.style.display = 'none'; }
+
+  document.addEventListener('click', (e) => {
     if (aboutOpen) {
       aboutModal.style.display = 'none';
+      hideBackdrop();
       aboutOpen = false;
       renderer.domElement.requestPointerLock();
       return;
     }
-    if (paperOpen) {
-      paperModal.style.display = 'none';
-      paperOpen = false;
+    if (cvOpen) {
+      if (e.target.closest('.modal-link')) return;
+      cvModal.style.display = 'none';
+      hideBackdrop();
+      cvOpen = false;
+      renderer.domElement.requestPointerLock();
+      return;
+    }
+    if (pubOpen) {
+      if (e.target.closest('.modal-link')) return;
+      pubModal.style.display = 'none';
+      hideBackdrop();
+      pubOpen = false;
+      renderer.domElement.requestPointerLock();
+      return;
+    }
+    if (linkedinOpen) {
+      if (e.target.closest('.modal-link')) return; // let the link navigate
+      linkedinModal.style.display = 'none';
+      hideBackdrop();
+      linkedinOpen = false;
+      renderer.domElement.requestPointerLock();
+      return;
+    }
+    if (githubOpen) {
+      if (e.target.closest('.modal-link')) return; // let the link navigate
+      githubModal.style.display = 'none';
+      hideBackdrop();
+      githubOpen = false;
       renderer.domElement.requestPointerLock();
       return;
     }
     if (locked && hoveringRight) {
-      window.open('https://github.com/cesarihinojosa', '_blank', "noopener,noreferrer");
+      document.exitPointerLock();
+      showBackdrop();
+      githubModal.style.display = 'block';
+      githubOpen = true;
     }
     if (locked && hoveringLeft) {
-      window.open('https://www.linkedin.com/in/cesar-hinojosa', '_blank', "noopener,noreferrer");
+      document.exitPointerLock();
+      showBackdrop();
+      linkedinModal.style.display = 'block';
+      linkedinOpen = true;
     }
     if (locked && hoveringCenter) {
       document.exitPointerLock();
+      showBackdrop();
       aboutModal.style.display = 'block';
       aboutOpen = true;
     }
-    if (locked && hoveringPaper) {
+    if (locked && hoveringCV) {
       document.exitPointerLock();
-      paperModal.style.display = 'block';
-      paperOpen = true;
+      showBackdrop();
+      cvModal.style.display = 'block';
+      cvOpen = true;
+    }
+    if (locked && hoveringPub) {
+      document.exitPointerLock();
+      showBackdrop();
+      pubModal.style.display = 'block';
+      pubOpen = true;
     }
   });
 
@@ -2127,6 +2570,8 @@
 
   // --- Game Loop ---
   const clock = new THREE.Clock();
+  let lastRenderTime = 0;
+  const IDLE_INTERVAL = 1 / 10;  // 10 FPS when idle
 
   function animate() {
     requestAnimationFrame(animate);
@@ -2148,6 +2593,7 @@
       if (keys['KeyA'] || keys['ArrowLeft']) { move.sub(right); moving = true; }
 
       if (moving) {
+        needsRender = true;
         move.normalize().multiplyScalar(speed);
         camera.position.x = Math.max(-BOUND, Math.min(BOUND, camera.position.x + move.x));
         camera.position.z = Math.max(-BOUND, Math.min(BOUND, camera.position.z + move.z));
@@ -2180,20 +2626,23 @@
       hoveringCenter = cHits.length > 0 && cHits[0].distance < 3;
       const lHits = raycaster.intersectObjects(lMonGroup.children, true);
       hoveringLeft = lHits.length > 0 && lHits[0].distance < 3;
-      const pHits = raycaster.intersectObjects(paperMeshes, true);
-      hoveringPaper = pHits.length > 0 && pHits[0].distance < 3;
+      const cvHits = raycaster.intersectObject(paperMeshes[0], true);
+      hoveringCV = cvHits.length > 0 && cvHits[0].distance < 3;
+      const pubHits = raycaster.intersectObject(paperMeshes[1], true);
+      hoveringPub = pubHits.length > 0 && pubHits[0].distance < 3;
       crosshair.classList.toggle('hover-green', hoveringRight);
       crosshair.classList.toggle('hover-pink', hoveringLeft);
       crosshair.classList.toggle('hover-blue', hoveringCenter);
-      crosshair.classList.toggle('hover-paper', hoveringPaper);
+      crosshair.classList.toggle('hover-paper', hoveringCV || hoveringPub);
     }
 
-    // Neon sign flicker — dying neon effect, stops after 5s
+    // Neon sign flicker — dying neon effect, stops after 2s
     const t = clock.elapsedTime;
     const sinceEntry = enteredTime ? (performance.now() - enteredTime) / 1000 : 0;
+    const flickering = !enteredTime || sinceEntry < 2;
     let neonBrightness = 1.0;
-    if (!enteredTime || sinceEntry < 2) {
-      // Irregular flicker using layered sine waves at odd frequencies
+    if (flickering) {
+      needsRender = true;  // always render during flicker
       const flick = Math.sin(t * 23.7) * Math.sin(t * 7.3) + Math.sin(t * 53.1) * 0.5;
       if (flick > 0.7) {
         neonBrightness = 0.05 + Math.random() * 0.1;
@@ -2208,6 +2657,12 @@
     neonSignMat.opacity = neonBrightness;
     neonGlow.intensity = 0.6 * neonBrightness;
     neonFill.intensity = 0.2 * neonBrightness;
+
+    // --- Idle throttle: skip render if nothing changed ---
+    const now = performance.now() / 1000;
+    if (!needsRender && (now - lastRenderTime) < IDLE_INTERVAL) return;
+    needsRender = false;
+    lastRenderTime = now;
 
     // --- Two-pass render: skybox first, then room on top ---
     // Pass 1: Render space skybox (rotation only — no position, so it's at infinity)
